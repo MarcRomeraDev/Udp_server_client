@@ -1,9 +1,7 @@
-#pragma once
-#include <PlayerInfo.h>
-#include <SFML\Network.hpp>
+#include "Client.h"
+#include <iostream>
 
-int main()
+void Client::Test()
 {
-	PlayerInfo playerInfo;
-	return 0;
+	std::cout << "funciona?";
 }

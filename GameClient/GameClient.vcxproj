@@ -154,7 +154,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="client.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="CodigoChat1solo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
