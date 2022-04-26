@@ -6,7 +6,6 @@
 
 #define MAX_MENSAJES 30
 
-
 int main()
 {
 	Client client;
@@ -27,8 +26,7 @@ int main()
 
 	sf::Text chattingText(mensaje, font, 14);
 	chattingText.setFillColor(sf::Color(0, 160, 0));
-	chattingText.setStyle(sf::Text::Bold);
-	
+	chattingText.setStyle(sf::Text::Bold);	
 
 	sf::Text text(mensaje, font, 14);
 	text.setFillColor(sf::Color(0, 160, 0));
@@ -38,8 +36,6 @@ int main()
 	sf::RectangleShape separator(sf::Vector2f(800, 5));
 	separator.setFillColor(sf::Color(200, 200, 200, 255));
 	separator.setPosition(0, 550);
-	
-
 
 	while (window.isOpen())
 	{
@@ -84,10 +80,8 @@ int main()
 		std::string mensaje_ = mensaje + "_";
 		text.setString(mensaje_);
 		window.draw(text);
-
 		
 		window.display();
 		window.clear();
-	}
-	
+	}	
 }

@@ -2,9 +2,9 @@
 #include <PlayerInfo.h>
 #include <SFML\Network.hpp>
 #include <thread>
+
 class Client
 {
-	public:
+public:
 	void Test();
 };
-

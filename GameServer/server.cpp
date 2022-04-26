@@ -2,11 +2,12 @@
 #include <iostream>
 #include <SFML\Graphics.hpp>
 #include <SFML\Network.hpp>
-#include <PlayerInfo.h>
 
 int main()
 {
-	
-	PlayerInfo playerInfo;
+	//thread recibir conexiones
+
+	//recibir y enviar mensajes
+
 	return 0;
 }
