@@ -6,5 +6,6 @@
 class Client
 {
 public:
-	void Test();
+	Client();
+	//void Test();
 };

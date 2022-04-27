@@ -21,7 +21,7 @@ int main()
 	{
 		std::cout << "Can't load the font file" << std::endl;
 	}
-
+		
 	sf::String mensaje = " >";
 
 	sf::Text chattingText(mensaje, font, 14);
@@ -48,7 +48,7 @@ int main()
 				window.close();
 				break;
 			case sf::Event::KeyPressed:
-				client.Test();
+				//client.Test();
 				if (evento.key.code == sf::Keyboard::Escape)
 					window.close();
 				else if (evento.key.code == sf::Keyboard::Return)
