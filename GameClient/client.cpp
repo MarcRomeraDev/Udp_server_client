@@ -1,29 +1,56 @@
 #include "Client.h"
 #include <iostream>
 
-Client::Client()
+Client::Client(std::vector<std::string>& messages)
 {
-	sf::UdpSocket socket; //--> Desvincular libreria de red
-	if (socket.bind(55001) != sf::Socket::Done)
+	if (socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
 	{
 		std::cout << "ERROR AL CONECTARSE AL PUERTO" << std::endl;
-		return;
+		//return;
 	}
 
-	std::string message = "Mi IP: " + sf::IpAddress::getLocalAddress().toString();
+	std::string message = "Mi IP: " + sf::IpAddress::getLocalAddress().toString() + "\nMi Puerto: " + std::to_string(socket.getLocalPort());	
 
-	sf::Packet packet;
-	packet << message;
-
-	if (socket.send(packet, sf::IpAddress::LocalHost, 55002) != sf::Socket::Done)
+	//Sens message to server
+	if (socket.send(message.c_str(), message.size() + 1, recipient, 55002) != sf::Socket::Done)
 	{
-		std::cout << "ERROR AL ENVIAR PACKETE" << std::endl;
-		return;
+		std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+		//return;
+	}	
+
+	//Recieve answer
+	if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+	{
+		std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
+		//return;
 	}
+	messages.push_back(data); //--> Output Server's welcome message to the interface screen
 
-	//conectarse al server
+	std::thread tRecieve(&Client::RecieveMessages, this, &messages);
+	tRecieve.detach();
+}
 
-	//recibir vector de mensajes para actualizar interfaz	
+void Client::SendMessage(std::string message)
+{
+	if (socket.send(message.c_str(), message.size() + 1, recipient, 55002) != sf::Socket::Done)
+	{
+		std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+	}
+}
 
-	//Thread esperar mensajes
+void Client::RecieveMessages(std::vector<std::string>* messages)
+{
+	bool end = false;
+	char data[1024] = "";
+	std::size_t received = 0;
+
+	while (!end)
+	{
+		if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+		{
+			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
+		}
+		
+		messages->push_back(data); //--> Output Server's welcome message to the interface screen
+	}
 }

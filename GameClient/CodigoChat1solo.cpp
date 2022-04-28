@@ -8,8 +8,8 @@
 
 int main()
 {
-	Client client;
 	std::vector<std::string> aMensajes;
+	Client client(aMensajes);
 	
 	sf::Vector2i screenDimensions(800, 600);
 
@@ -22,7 +22,7 @@ int main()
 		std::cout << "Can't load the font file" << std::endl;
 	}
 		
-	sf::String mensaje = " >";
+	sf::String mensaje = ">";
 
 	sf::Text chattingText(mensaje, font, 14);
 	chattingText.setFillColor(sf::Color(0, 160, 0));
@@ -54,11 +54,14 @@ int main()
 				else if (evento.key.code == sf::Keyboard::Return)
 				{
 					aMensajes.push_back(mensaje);
+					mensaje.erase(0, 1);
+					client.SendMessage(mensaje); //-->Client sends message
 					if (aMensajes.size() > 25)
 					{
 						aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 					}
 					mensaje = ">";
+
 				}
 				break;
 			case sf::Event::TextEntered:
