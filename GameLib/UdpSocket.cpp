@@ -10,6 +10,7 @@ UdpSocket::~UdpSocket()
 	delete udpSocket;
 }
 
+
 unsigned short UdpSocket::GetRemotePort()
 {
 	return 0;
@@ -32,5 +33,8 @@ bool UdpSocket::Send(const void* data, std::size_t size, const sf::IpAddress& re
 
 bool UdpSocket::Receive(void* data, std::size_t size, std::size_t& received, std::string& remoteAddress, unsigned short& port)
 {	
-	return udpSocket->receive(data, size, received, sf::IpAddress(remoteAddress), port) == sf::Socket::Done;
+	sf::IpAddress aux;
+	bool result = udpSocket->receive(data, size, received, aux, port) == sf::Socket::Done;
+	remoteAddress = aux.toString();
+	return result;
 }

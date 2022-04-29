@@ -14,20 +14,17 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 	//Wait for icnoming messages
 	while (!end)
 	{
-		//if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
-		//{
-		//	std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
-		//	//_end = true;
-		//}
 
 		if (!socket.Receive(data, sizeof(data), received, sender, port))
 		{
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
+			// 
+			continue;
 		}
 
 		std::cout << std::to_string(port) << " dice: " << data << std::endl;
 
-		if (clients.find(port) != clients.end())
+		if (clients.find(port) != clients.end()) // Check if client already exist
 		{
 			message = std::to_string(port) + " dice: " + data;
 			//incoming message of an existing client, forward to all other clients
@@ -42,16 +39,11 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 				}
 			}
 		}
-		else
+		else // is new client
 		{
 			clients.insert(port);
 			message = "Bienvenido " + sender;
-
 			//Answer
-			/*if (socket.send(message.c_str(), message.size() + 1, sender, port) != sf::Socket::Done)
-			{
-				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
-			}*/
 
 			if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 			{
@@ -63,17 +55,11 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 
 int main()
 {
-	//sf::UdpSocket socket;
 	UdpSocket* socket = new UdpSocket();
 
 	bool end = false;
 	std::unordered_set<unsigned short> clients;
 
-	/*if (socket.bind(55002) != sf::Socket::Done)
-	{
-		std::cout << "ERROR AL BINDEAR AL PUERTO" << std::endl;
-		return -1;
-	}*/
 
 	if (!socket->Bind(55002))
 	{

@@ -11,6 +11,8 @@ public:
 	UdpSocket(sf::UdpSocket* _udpSocket);
 	~UdpSocket();
 
+	std::string GetLocalHost() const { return sf::IpAddress::LocalHost.toString(); }
+
 	sf::UdpSocket* GetSocket() { return udpSocket; }
 	void SetSocket(sf::UdpSocket* _udpSocket);
 	//std::string GetRemoteIP();

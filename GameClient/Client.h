@@ -6,13 +6,13 @@ class Client
 {
 private:
 	UdpSocket* socket;
-	std::string recipient = "192.168.0.18";
+	std::string recipient;
 	std::string sender;
 	unsigned short port;
 	std::size_t received = 0;
 	char data[1024] = "";
 
-	void RecieveMessages(std::vector<std::string>*);
+	void ReceiveMessages(std::vector<std::string>* messages);
 
 public:
 	Client(std::vector<std::string>&);
