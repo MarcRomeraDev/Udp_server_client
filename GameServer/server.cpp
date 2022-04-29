@@ -1,39 +1,41 @@
 #pragma once
 #include <iostream>
-#include <SFML\Graphics.hpp>
-#include <SFML\Network.hpp>
 #include <unordered_set>
+#include <UdpSocket.h>
 
-void ManageConnections(sf::UdpSocket& _socket, bool _end, std::unordered_set<unsigned short> _clients)
+void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned short> clients)
 {
 	std::string message = "";
+	std::string sender;
+	unsigned short port;
+	char data[1024] = "";
+	std::size_t received = 0;
 
 	//Wait for icnoming messages
-	while (!_end)
+	while (!end)
 	{
-		sf::IpAddress sender;
-		unsigned short port;
+		//if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+		//{
+		//	std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
+		//	//_end = true;
+		//}
 
-		char data[1024] = "";
-		std::size_t received = 0;
-
-		if (_socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+		if (!socket.Receive(data, sizeof(data), received, sender, port))
 		{
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
-			//_end = true;
 		}
 
 		std::cout << std::to_string(port) << " dice: " << data << std::endl;
 
-		if (_clients.find(port) != _clients.end())
+		if (clients.find(port) != clients.end())
 		{
 			message = std::to_string(port) + " dice: " + data;
 			//incoming message of an existing client, forward to all other clients
-			for (const auto& elem : _clients)
+			for (const auto& elem : clients)
 			{
 				if (elem != port)
 				{
-					if (_socket.send(message.c_str(), message.size() + 1, sender, elem) != sf::Socket::Done)
+					if (!socket.Send(message.c_str(), message.size() + 1, sender, elem))
 					{
 						std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 					}
@@ -42,11 +44,16 @@ void ManageConnections(sf::UdpSocket& _socket, bool _end, std::unordered_set<uns
 		}
 		else
 		{
-			_clients.insert(port);
-			message = "Bienvenido " + sender.toString();
+			clients.insert(port);
+			message = "Bienvenido " + sender;
 
 			//Answer
-			if (_socket.send(message.c_str(), message.size() + 1, sender, port) != sf::Socket::Done)
+			/*if (socket.send(message.c_str(), message.size() + 1, sender, port) != sf::Socket::Done)
+			{
+				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+			}*/
+
+			if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 			{
 				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 			}
@@ -56,17 +63,27 @@ void ManageConnections(sf::UdpSocket& _socket, bool _end, std::unordered_set<uns
 
 int main()
 {
-	sf::UdpSocket socket;
+	//sf::UdpSocket socket;
+	UdpSocket* socket = new UdpSocket();
+
 	bool end = false;
 	std::unordered_set<unsigned short> clients;
 
-	if (socket.bind(55002) != sf::Socket::Done)
+	/*if (socket.bind(55002) != sf::Socket::Done)
 	{
 		std::cout << "ERROR AL BINDEAR AL PUERTO" << std::endl;
 		return -1;
+	}*/
+
+	if (!socket->Bind(55002))
+	{
+		std::cout << "ERROR AL BINDEAR AL PUERTO" << std::endl;
+		delete socket;
+		return -1;
 	}
 
-	ManageConnections(socket, end, clients);
+	ManageConnections(*socket, end, clients);
 
+	delete socket;
 	return 0;
 }

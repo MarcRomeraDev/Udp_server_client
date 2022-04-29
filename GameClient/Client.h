@@ -1,14 +1,13 @@
 #pragma once
-#include <PlayerInfo.h>
-#include <SFML\Network.hpp>
 #include <thread>
+#include <UdpSocket.h>
 
 class Client
 {
 private:
-	sf::UdpSocket socket; //--> Desvincular libreria de red
-	sf::IpAddress recipient = "192.168.0.18";
-	sf::IpAddress sender;
+	UdpSocket* socket;
+	std::string recipient = "192.168.0.18";
+	std::string sender;
 	unsigned short port;
 	std::size_t received = 0;
 	char data[1024] = "";
@@ -17,6 +16,7 @@ private:
 
 public:
 	Client(std::vector<std::string>&);
+	~Client();
 
 	void SendMessage(std::string);
 };

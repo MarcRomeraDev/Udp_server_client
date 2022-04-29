@@ -3,36 +3,63 @@
 
 Client::Client(std::vector<std::string>& messages)
 {
-	if (socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
+	//if (socket.bind(sf::Socket::AnyPort) != sf::Socket::Done)
+	//{
+	//	std::cout << "ERROR AL CONECTARSE AL PUERTO" << std::endl;
+	//	//return;
+	//}
+	socket = new UdpSocket();
+
+	if (!socket->Bind())
 	{
 		std::cout << "ERROR AL CONECTARSE AL PUERTO" << std::endl;
-		//return;
 	}
 
-	std::string message = "Mi IP: " + sf::IpAddress::getLocalAddress().toString() + "\nMi Puerto: " + std::to_string(socket.getLocalPort());	
+	std::string message = "Mi IP: " + socket->GetLocalIP() + "\nMi Puerto: " + std::to_string(socket->GetLocalPort());
 
-	//Sens message to server
-	if (socket.send(message.c_str(), message.size() + 1, recipient, 55002) != sf::Socket::Done)
+	//Sends message to server
+	//if (socket.send(message.c_str(), message.size() + 1, recipient, 55002) != sf::Socket::Done)
+	//{
+	//	std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+	//	//return;
+	//}
+
+	if (!socket->Send(message.c_str(), message.size() + 1, recipient, 55002))
 	{
 		std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
-		//return;
-	}	
+	}
 
-	//Recieve answer
-	if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+	//Receive answer
+	//if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+	//{
+	//	std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
+	//	//return;
+	//}
+
+	if (!socket->Receive(data, sizeof(data), received, sender, port))
 	{
 		std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
-		//return;
 	}
+
 	messages.push_back(data); //--> Output Server's welcome message to the interface screen
 
-	std::thread tRecieve(&Client::RecieveMessages, this, &messages);
+	std::thread tRecieve(&Client::RecieveMessages, this, &messages); //--> Thread to wait for incoming messages of other clients sent from server
 	tRecieve.detach();
+}
+
+Client::~Client()
+{
+	delete socket;
 }
 
 void Client::SendMessage(std::string message)
 {
-	if (socket.send(message.c_str(), message.size() + 1, recipient, 55002) != sf::Socket::Done)
+	/*if (socket.send(message.c_str(), message.size() + 1, recipient, 55002) != sf::Socket::Done)
+	{
+		std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+	}*/
+
+	if (!socket->Send(message.c_str(), message.size() + 1, recipient, 55002))
 	{
 		std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 	}
@@ -41,16 +68,19 @@ void Client::SendMessage(std::string message)
 void Client::RecieveMessages(std::vector<std::string>* messages)
 {
 	bool end = false;
-	char data[1024] = "";
-	std::size_t received = 0;
 
 	while (!end)
 	{
-		if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+		/*if (socket.receive(data, sizeof(data), received, sender, port) != sf::Socket::Done)
+		{
+			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
+		}*/
+
+		if (!socket->Receive(data, sizeof(data), received, sender, port))
 		{
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
 		}
-		
+
 		messages->push_back(data); //--> Output Server's welcome message to the interface screen
 	}
 }
