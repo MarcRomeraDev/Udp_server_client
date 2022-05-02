@@ -9,7 +9,6 @@
 int main()
 {
 	std::vector<std::string> aMensajes;
-	Client client(aMensajes);
 	
 	sf::Vector2i screenDimensions(800, 600);
 
@@ -37,6 +36,7 @@ int main()
 	separator.setFillColor(sf::Color(200, 200, 200, 255));
 	separator.setPosition(0, 550);
 
+	Client client(aMensajes);
 	while (window.isOpen())
 	{
 		sf::Event evento;
@@ -45,6 +45,7 @@ int main()
 			switch (evento.type)
 			{
 			case sf::Event::Closed:
+				// Send message de desconexion
 				window.close();
 				break;
 			case sf::Event::KeyPressed:
