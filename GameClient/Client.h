@@ -11,6 +11,7 @@ private:
 	std::string sender;
 	bool end = false;
 	bool connected = false;
+	Header lastReceived;
 	unsigned short port;
 	std::size_t received = 0;
 	char data[1024] = "";

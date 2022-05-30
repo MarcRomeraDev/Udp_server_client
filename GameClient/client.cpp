@@ -3,6 +3,7 @@
 #include <PlayerInfo.h>
 
 
+
 Client::Client()
 {
 	socket = new UdpSocket();
@@ -51,7 +52,7 @@ void Client::Connect()
 	std::string _message;
 	_message = static_cast<std::string>((int)Header::CONNECT);
 	_message += CreateSALT();
-	SendMessage(_message);
+	SendCriticalMessage(Header::CONNECT,_message);
 }
 
 uint32_t Client::CreateSALT()
@@ -66,8 +67,27 @@ uint32_t Client::CreateSALT()
 
 void Client::SendCriticalMessage(Header header,std::string data)
 {
-	SendMessage(data);
+	Header confirmationHeader = Header::COUNT;
+	switch (header)
+	{
+	case Header::CONNECT:
+		confirmationHeader = Header::CHALLENGE;
+		break;
+	case Header::ACTION:
+		confirmationHeader = Header::OK_ACTION;
+		break;
+	default:
+		std::cout << "Error" << std::endl;
+		break;
+	}
 
+	//Inicializamos temporizador
+	while (lastReceived != confirmationHeader)
+	{
+		// if temporizador <= 0
+			SendMessage(data);
+			//Temporizador == maxRetryDelay
+	}
 }
 
 void Client::SendMessage(std::string message)
@@ -84,6 +104,8 @@ void Client::ReceiveMessages(std::vector<std::string>* messages, bool *end)
 	{
 		if (!socket->Receive(data, sizeof(data), received, sender, port))
 		{
+			//Sacar el header de data TO DO
+			//lastReceived = data;
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
 		}
 
