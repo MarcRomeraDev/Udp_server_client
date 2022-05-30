@@ -37,6 +37,7 @@ void UdpSocket::Unbind()
 
 bool UdpSocket::Send(const void* data, std::size_t size, const sf::IpAddress& remoteAddress, unsigned short port)
 {
+	// Probabilidad de perdida de paquetes
 	return udpSocket->send(data, size + 1, remoteAddress, port) == sf::Socket::Done;
 }
 

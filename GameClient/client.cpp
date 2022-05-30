@@ -1,22 +1,25 @@
 #include "Client.h"
 #include <iostream>
+#include <PlayerInfo.h>
 
 
-
-Client::Client(std::vector<std::string>& messages)
+Client::Client()
 {
-
 	socket = new UdpSocket();
 	recipient = socket->GetLocalHost();
-
+	PlayerInfo player;
 	if (!socket->Bind())
 	{
 		std::cout << "ERROR AL CONECTARSE AL PUERTO" << std::endl;
+		return;
 	}
-
+	std::cout << "Inserta tu nickname" << std::endl;
+	std::cin >> player.name;
+	
+	Connect();
 	//std::string message = "Mi IP: " + socket->GetLocalIP() + "\nMi Puerto: " + std::to_string(socket->GetLocalPort());
-	std::string message = "Inserta tu nickname";
-	messages.push_back(message); //--> Demands the nickname through the interface
+	//std::string message = "Inserta tu nickname";
+	//messages.push_back(message); //--> Demands the nickname through the interface
 
 	
 
@@ -30,16 +33,41 @@ Client::Client(std::vector<std::string>& messages)
 //}
 
 	//messages.push_back(data); //--> Output Server's welcome message to the interface screen
-	std::thread tRecieve(&Client::ReceiveMessages, this, &messages, &end); //--> Thread to wait for incoming messages of other clients sent from server
-	tRecieve.detach();
+	//std::thread tRecieve(&Client::ReceiveMessages, this, &messages, &end); //--> Thread to wait for incoming messages of other clients sent from server
+	//tRecieve.detach();
 
 }
+
 
 
 Client::~Client()
 {
 	end = true;
 	delete socket;
+}
+
+void Client::Connect()
+{
+	std::string _message;
+	_message = static_cast<std::string>((int)Header::CONNECT);
+	_message += CreateSALT();
+	SendMessage(_message);
+}
+
+uint32_t Client::CreateSALT()
+{
+	uint32_t x = rand() & 0xff;
+	x |= (rand() & 0xff) << 8;
+	x |= (rand() & 0xff) << 16;
+	x |= (rand() & 0xff) << 24;
+
+	return x;
+}
+
+void Client::SendCriticalMessage(Header header,std::string data)
+{
+	SendMessage(data);
+
 }
 
 void Client::SendMessage(std::string message)
