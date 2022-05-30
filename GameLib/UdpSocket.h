@@ -21,6 +21,7 @@ public:
 	unsigned short GetRemotePort();
 	bool Bind(unsigned short);
 	bool Bind();
+	void Unbind();
 	bool Send(const void*, std::size_t, const sf::IpAddress&, unsigned short);
 	bool Receive(void*, std::size_t, std::size_t&, std::string&, unsigned short&);
 
