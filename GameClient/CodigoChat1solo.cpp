@@ -102,8 +102,8 @@ void DrawDungeon()
 int main()
 {
 	
-
-	Client client();
+	srand(static_cast<unsigned>(time(nullptr)));
+	Client client;
 	// Entras / Creas una partida
 	DrawDungeon();
 }

@@ -14,11 +14,9 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 	//Wait for icnoming messages
 	while (!end)
 	{
-
 		if (!socket.Receive(data, sizeof(data), received, sender, port))
 		{
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
-			// 
 			continue;
 		}
 
@@ -42,8 +40,8 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 		else // is new client
 		{
 			clients.insert(port);
-			message = "Bienvenido " + sender;
-			//Answer
+			
+			//ENVIAR CHALLENGE AL CLIENTE NO VALIDADO
 
 			if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 			{

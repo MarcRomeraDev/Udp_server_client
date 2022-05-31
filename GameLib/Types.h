@@ -14,4 +14,3 @@ enum class Header {
 	FINISH, // Server -> Client (End match after countdown or if all clients have left)
 	COUNT
 };
-

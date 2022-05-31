@@ -8,7 +8,9 @@ Client::Client()
 {
 	socket = new UdpSocket();
 	recipient = socket->GetLocalHost();
+
 	PlayerInfo player;
+
 	if (!socket->Bind())
 	{
 		std::cout << "ERROR AL CONECTARSE AL PUERTO" << std::endl;
@@ -39,8 +41,6 @@ Client::Client()
 
 }
 
-
-
 Client::~Client()
 {
 	end = true;
@@ -50,8 +50,8 @@ Client::~Client()
 void Client::Connect()
 {
 	std::string _message;
-	_message = static_cast<std::string>((int)Header::CONNECT);
-	_message += CreateSALT();
+	_message = std::to_string((int)Header::CONNECT);
+	_message += std::to_string(CreateSALT());
 	SendCriticalMessage(Header::CONNECT,_message);
 }
 
@@ -106,11 +106,12 @@ void Client::ReceiveMessages(std::vector<std::string>* messages, bool *end)
 		{
 			//Sacar el header de data TO DO
 			//lastReceived = data;
+			//switch()
+			//case CHALLENGE
+				//send ack
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
 		}
 
 		messages->push_back(data);
 	}
-
-
 }
