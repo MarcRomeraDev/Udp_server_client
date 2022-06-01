@@ -7,10 +7,10 @@
 Client::Client()
 {
 	socket = new UdpSocket();
+	PlayerInfo player;
 	recipient = socket->GetLocalHost();
 
-	PlayerInfo player;
-
+	
 	if (!socket->Bind())
 	{
 		std::cout << "ERROR AL CONECTARSE AL PUERTO" << std::endl;
@@ -80,13 +80,20 @@ void Client::SendCriticalMessage(Header header,std::string data)
 		std::cout << "Error" << std::endl;
 		break;
 	}
-
+	clock start = std::chrono::system_clock::now();
+	clock end;
+	std::chrono::duration<float, std::milli> duration;
 	//Inicializamos temporizador
 	while (lastReceived != confirmationHeader)
 	{
-		// if temporizador <= 0
+		end = std::chrono::system_clock::now();
+		duration = end - start;
+		if (duration.count() >= 50)
+		{
 			SendMessage(data);
+			start = std::chrono::system_clock::now();
 			//Temporizador == maxRetryDelay
+		}
 	}
 }
 

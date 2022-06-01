@@ -1,9 +1,5 @@
 #include "UdpSocket.h"
-#include "Types.h"
-sf::Packet& operator<<(sf::Packet& pack, const Header& header)
-{
-	return pack << static_cast<int>(header);
-}
+
 UdpSocket::UdpSocket()
 {
 	udpSocket = new sf::UdpSocket();

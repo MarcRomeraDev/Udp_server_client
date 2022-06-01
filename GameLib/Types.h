@@ -1,5 +1,6 @@
 #pragma once
 
+
 enum class Header {
 	CONNECT = 0, // Client -> Server (Cuando el cliente se conecta por primera vez)
 	CHALLENGE, // Server -> Client (Creates a challenge for the client)
@@ -14,3 +15,33 @@ enum class Header {
 	FINISH, // Server -> Client (End match after countdown or if all clients have left)
 	COUNT
 };
+static int Len(std::string str)
+{
+    int length = 0;
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        length++;
+
+    }
+    return length;
+}
+static std::vector<std::string> Split(std::string str, char seperator)
+{
+    int currIndex = 0, i = 0;
+    int startIndex = 0, endIndex = 0;
+    std::vector<std::string> strings;
+    while (i <= Len(str))
+    {
+        if (str[i] == seperator || i == Len(str))
+        {
+            endIndex = i;
+            std::string subStr = "";
+            subStr.append(str, startIndex, endIndex - startIndex);
+            strings.push_back(subStr);
+            currIndex += 1;
+            startIndex = endIndex + 1;
+        }
+        i++;
+    }
+    return strings;
+}

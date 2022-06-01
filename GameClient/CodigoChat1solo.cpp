@@ -1,7 +1,5 @@
 #include <iostream>
-#include <fcntl.h>
 #include <string>
-#include <vector>
 #include <fcntl.h>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>

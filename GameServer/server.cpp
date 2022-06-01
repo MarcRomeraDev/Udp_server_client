@@ -2,7 +2,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <UdpSocket.h>
-
+#include <Types.h>
 void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned short> clients)
 {
 	std::string message = "";
@@ -10,8 +10,8 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 	unsigned short port;
 	char data[1024] = "";
 	std::size_t received = 0;
-
-	//Wait for icnoming messages
+	std::vector<std::string> dataReceived;
+	//Wait for incoming messages
 	while (!end)
 	{
 		if (!socket.Receive(data, sizeof(data), received, sender, port))
@@ -19,8 +19,10 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
 			continue;
 		}
-
-		std::cout << std::to_string(port) << " dice: " << data << std::endl;
+		dataReceived.clear();
+		//std::string s(data);
+		//dataReceived = Split(s, '<');
+		//std::cout << port << " dice: " << dataReceived[0] << " Con la informacion: " << data << std::endl;
 
 		if (clients.find(port) != clients.end()) // Check if client already exist
 		{
