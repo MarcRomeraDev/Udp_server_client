@@ -20,9 +20,9 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 			continue;
 		}
 		dataReceived.clear();
-		//std::string s(data);
-		//dataReceived = Split(s, '<');
-		//std::cout << port << " dice: " << dataReceived[0] << " Con la informacion: " << data << std::endl;
+		std::string s(data);
+		dataReceived = Split(s, '<');
+		std::cout << port << " dice: " << dataReceived[0] << " Con la informacion: " << data << std::endl;
 
 		if (clients.find(port) != clients.end()) // Check if client already exist
 		{

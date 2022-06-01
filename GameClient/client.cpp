@@ -36,8 +36,8 @@ Client::Client()
 //}
 
 	//messages.push_back(data); //--> Output Server's welcome message to the interface screen
-	//std::thread tRecieve(&Client::ReceiveMessages, this, &messages, &end); //--> Thread to wait for incoming messages of other clients sent from server
-	//tRecieve.detach();
+	std::thread tRecieve(&Client::ReceiveMessages, this, &end); //--> Thread to wait for incoming messages of other clients sent from server
+	tRecieve.detach();
 
 }
 
@@ -50,9 +50,11 @@ Client::~Client()
 void Client::Connect()
 {
 	std::string _message;
-	_message = std::to_string((int)Header::CONNECT);
-	_message += std::to_string(CreateSALT());
-	SendCriticalMessage(Header::CONNECT,_message);
+	_message = std::to_string((int)Header::ACK_CHALLENGE);
+	_message += "<"+std::to_string(CreateSALT());
+	
+	std::thread tSendCritical(&Client::SendCriticalMessage, this, Header::ACK_CHALLENGE, _message);
+	tSendCritical.detach();
 }
 
 uint32_t Client::CreateSALT()
@@ -92,7 +94,6 @@ void Client::SendCriticalMessage(Header header,std::string data)
 		{
 			SendMessage(data);
 			start = std::chrono::system_clock::now();
-			//Temporizador == maxRetryDelay
 		}
 	}
 }
@@ -105,20 +106,24 @@ void Client::SendMessage(std::string message)
 	}
 }
 
-void Client::ReceiveMessages(std::vector<std::string>* messages, bool *end)
+void Client::ReceiveMessages(bool *end)
 {
+
+	std::vector<std::string> dataReceived;
 	while (!end)
 	{
 		if (!socket->Receive(data, sizeof(data), received, sender, port))
 		{
-			//Sacar el header de data TO DO
-			//lastReceived = data;
+			dataReceived.clear();
+			std::string s(data);
+			dataReceived = Split(s, '<');
+			lastReceived = static_cast<Header>(atoi(dataReceived[0].c_str()));
 			//switch()
 			//case CHALLENGE
 				//send ack
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
 		}
 
-		messages->push_back(data);
+		//messages->push_back(data);
 	}
 }
