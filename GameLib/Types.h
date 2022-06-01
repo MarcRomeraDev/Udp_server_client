@@ -1,6 +1,5 @@
 #pragma once
 
-
 enum class Header {
 	CONNECT = 0, // Client -> Server (Cuando el cliente se conecta por primera vez)
 	CHALLENGE, // Server -> Client (Creates a challenge for the client)
@@ -15,6 +14,17 @@ enum class Header {
 	FINISH, // Server -> Client (End match after countdown or if all clients have left)
 	COUNT
 };
+
+static uint32_t CreateSALT()
+{
+    uint32_t x = rand() & 0xff;
+    x |= (rand() & 0xff) << 8;
+    x |= (rand() & 0xff) << 16;
+    x |= (rand() & 0xff) << 24;
+
+    return x;
+}
+
 static int Len(std::string str)
 {
     int length = 0;
@@ -25,6 +35,7 @@ static int Len(std::string str)
     }
     return length;
 }
+
 static std::vector<std::string> Split(std::string str, char seperator)
 {
     int currIndex = 0, i = 0;

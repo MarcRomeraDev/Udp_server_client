@@ -23,6 +23,7 @@
 #define NUM_OBSTACLES_2x2 10
 
 #define MAX_MENSAJES 30
+
 void DrawDungeon()
 {
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");
@@ -97,12 +98,31 @@ void DrawDungeon()
 	}
 
 }
+
 int main()
-{
-	
+{	
 	srand(static_cast<unsigned>(time(nullptr)));
+
 	Client client;
+	std::string message;
+	std::string input;
+
 	// Entras / Creas una partida
+	while (!client.connected)
+	{
+		std::cin >> input;
+
+		switch (client.lastReceived)
+		{
+		case Header::CHALLENGE:
+			message = std::to_string((int)Header::RSP_CHALLENGE);
+			message += "<" + input;
+			client.SendMessage(message);
+			break;
+		default:
+			break;
+		}
+	}
 	DrawDungeon();
 }
 
