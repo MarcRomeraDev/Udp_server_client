@@ -50,10 +50,10 @@ Client::~Client()
 void Client::Connect()
 {
 	std::string _message;
-	_message = std::to_string((int)Header::ACK_CHALLENGE);
+	_message = std::to_string((int)Header::CONNECT);
 	_message += "<"+std::to_string(CreateSALT());
 	
-	std::thread tSendCritical(&Client::SendCriticalMessage, this, Header::ACK_CHALLENGE, _message);
+	std::thread tSendCritical(&Client::SendCriticalMessage, this, Header::CONNECT, _message);
 	tSendCritical.detach();
 }
 
@@ -82,15 +82,16 @@ void Client::SendCriticalMessage(Header header,std::string data)
 		std::cout << "Error" << std::endl;
 		break;
 	}
+	//Inicializamos temporizador
 	clock start = std::chrono::system_clock::now();
 	clock end;
 	std::chrono::duration<float, std::milli> duration;
-	//Inicializamos temporizador
+	SendMessage(data);
 	while (lastReceived != confirmationHeader)
 	{
 		end = std::chrono::system_clock::now();
 		duration = end - start;
-		if (duration.count() >= 50)
+		if (duration.count() >= 5000)
 		{
 			SendMessage(data);
 			start = std::chrono::system_clock::now();

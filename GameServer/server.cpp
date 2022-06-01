@@ -41,10 +41,10 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_set<unsigned 
 		}
 		else // is new client
 		{
-			clients.insert(port);
 			
 			//ENVIAR CHALLENGE AL CLIENTE NO VALIDADO
 
+			clients.insert(port);
 			if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 			{
 				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
