@@ -112,10 +112,10 @@ int main()
 	// Entras / Creas una partida
 	while (!client.connected)
 	{
-			std::cin >> input;
 		switch (client.lastReceived)
 		{
 		case Header::CHALLENGE:
+			std::cin >> input;
 
 			message = std::to_string((int)Header::RSP_CHALLENGE);
 			message += "<" + std::to_string(client.player.saltTag) + "<" + input + "<" + client.player.name;

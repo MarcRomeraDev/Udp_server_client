@@ -98,11 +98,15 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 							std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 						}
 					}
+					else
+					{
+						std::cout << "CHALLENGE INCORRECTO" << std::endl;
+					}
 				}
 				else
 				{
-					std::cout << "CLIENTE NO VALIDADO AUN" << std::endl;
-				}
+					std::cout << "TAG NO COINCIDE CON LA DEL CLIENTE ORIGINAL" << std::endl;
+				}				
 				break;
 			default:
 				break;
@@ -112,7 +116,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 		{
 			//ENVIAR CHALLENGE AL CLIENTE NO VALIDADO
 			PlayerInfo* player = new PlayerInfo;
-			player->clientSalt = (uint32_t)atoi(dataReceived[1].c_str());
+			player->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
 			player->serverSalt = CreateSALT();
 			player->port = port;
 			player->ip = sender;

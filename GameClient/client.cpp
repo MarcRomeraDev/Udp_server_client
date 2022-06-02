@@ -99,7 +99,7 @@ void Client::ReceiveMessages(bool* end)
 		{
 		case Header::CHALLENGE:
 			std::cout << dataReceived[1] << std::endl;
-			player.serverSalt = atoi(dataReceived[2].c_str());
+			player.serverSalt = static_cast<uint32_t>(std::stoul(dataReceived[2].c_str()));
 			player.saltTag = (player.clientSalt & player.serverSalt); //AND binario para generar el tag unico de cada cliente
 			break;
 		case Header::ACK_CHALLENGE:
