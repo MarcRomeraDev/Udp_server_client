@@ -63,10 +63,10 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 
 		if (clientsValidados.find(port) != clientsValidados.end()) // Check if client already exist
 		{
-			std::cout << "CLIENTE VALIDADO" << std::endl;
 			switch (header)
 			{
 			case Header::CONNECT:
+			std::cout << "CLIENTE VALIDADO CONECTADO" << std::endl;
 				clientsValidados.at(port)->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
 				message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 				message += "<WELCOME\n";
@@ -76,6 +76,15 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 				}
 				break;
+			case Header::CLIENT_DISCONNECT:
+			std::cout << "CLIENTE VALIDADO DESCONECTADO" << std::endl;
+				message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+				message += "<Disconnecting...\n";
+				if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
+				{
+					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+				}
+
 			default:
 				break;
 			}

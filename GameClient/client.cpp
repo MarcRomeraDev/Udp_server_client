@@ -105,12 +105,15 @@ void Client::ReceiveMessages(bool* end)
 		case Header::ACK_CHALLENGE:
 			std::cout << dataReceived[1] << std::endl;
 			connected = true;
+			break;
 		case Header::SERVER_DISCONNECT:
 			std::cout << dataReceived[1] << std::endl;
 			*end = true;
 			connected = false;
+			break;
 		case Header::MESSAGE:
 			std::cout << dataReceived[1] << std::endl;
+			break;
 		default:
 			break;
 		}
