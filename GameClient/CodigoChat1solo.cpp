@@ -120,6 +120,7 @@ int main()
 			message = std::to_string((int)Header::RSP_CHALLENGE);
 			message += "<" + std::to_string(client.player.saltTag) + "<" + input + "<" + client.player.name;
 			client.SendMessage(message);
+			client.lastReceived = Header::COUNT;
 			break;
 		default:
 			break;

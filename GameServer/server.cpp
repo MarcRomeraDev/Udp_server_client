@@ -38,6 +38,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 {
 	std::string message = "";
 	std::string sender;
+	const int MAX_ATTEMPS_PER_CLIENT = 3;
 	unsigned short port;
 	char data[1024] = "";
 	std::size_t received = 0;
@@ -63,7 +64,20 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 		if (clientsValidados.find(port) != clientsValidados.end()) // Check if client already exist
 		{
 			std::cout << "CLIENTE VALIDADO" << std::endl;
-			//SWITCH INGAME
+			switch (header)
+			{
+			case Header::CONNECT:
+				message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+				message += "<WELCOME\n";
+
+				if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
+				{
+					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+				}
+				break;
+			default:
+				break;
+			}
 			// 
 			//incoming message of an existing client, forward to all other clients
 			//for (const auto& elem : clientsValidados)
@@ -81,6 +95,10 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 		{
 			switch (header)
 			{
+			case Header::CONNECT:
+				clientsNoValidados.at(port)->attemptCount = 1;
+				clientsNoValidados.at(port)->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(clientsNoValidados.at(port)->serverSalt));
+				break;
 			case Header::RSP_CHALLENGE:
 				if ((clientsNoValidados.at(port)->clientSalt & clientsNoValidados.at(port)->serverSalt) == static_cast<uint32_t>(std::stoul(dataReceived[1])))
 				{
@@ -101,11 +119,20 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 					else
 					{
 						std::cout << "CHALLENGE INCORRECTO" << std::endl;
+						if (clientsNoValidados.at(port)->attemptCount >= MAX_ATTEMPS_PER_CLIENT)
+						{
+							//Desconectar Cliente
+
+						}
+						else
+							clientsNoValidados.at(port)->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(clientsNoValidados.at(port)->serverSalt));
+						clientsNoValidados.at(port)->attemptCount++;
 					}
 				}
 				else
 				{
 					std::cout << "TAG NO COINCIDE CON LA DEL CLIENTE ORIGINAL" << std::endl;
+					//desconectar tramposo
 				}				
 				break;
 			default:
