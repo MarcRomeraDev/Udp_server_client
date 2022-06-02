@@ -109,6 +109,8 @@ void Client::ReceiveMessages(bool* end)
 			std::cout << dataReceived[1] << std::endl;
 			*end = true;
 			connected = false;
+		case Header::MESSAGE:
+			std::cout << dataReceived[1] << std::endl;
 		default:
 			break;
 		}

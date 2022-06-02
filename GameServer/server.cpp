@@ -67,6 +67,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			switch (header)
 			{
 			case Header::CONNECT:
+				clientsValidados.at(port)->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
 				message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 				message += "<WELCOME\n";
 
@@ -97,7 +98,17 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			{
 			case Header::CONNECT:
 				clientsNoValidados.at(port)->attemptCount = 1;
+				clientsNoValidados.at(port)->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
 				clientsNoValidados.at(port)->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(clientsNoValidados.at(port)->serverSalt));
+				break;
+			case Header::CLIENT_DISCONNECT:
+				message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+				message += "<Disconnecting...\n";
+				if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
+				{
+					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+				}
+
 				break;
 			case Header::RSP_CHALLENGE:
 				if ((clientsNoValidados.at(port)->clientSalt & clientsNoValidados.at(port)->serverSalt) == static_cast<uint32_t>(std::stoul(dataReceived[1])))
@@ -122,7 +133,12 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 						if (clientsNoValidados.at(port)->attemptCount >= MAX_ATTEMPS_PER_CLIENT)
 						{
 							//Desconectar Cliente
-
+							message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+							message += "<Too many attemps, disconnecting...\n";
+							if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
+							{
+								std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+							}
 						}
 						else
 							clientsNoValidados.at(port)->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(clientsNoValidados.at(port)->serverSalt));
@@ -133,7 +149,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 				{
 					std::cout << "TAG NO COINCIDE CON LA DEL CLIENTE ORIGINAL" << std::endl;
 					//desconectar tramposo
-				}				
+				}
 				break;
 			default:
 				break;
@@ -150,6 +166,25 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			clientsNoValidados.insert({ port, player });
 
 			player->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(player->serverSalt));
+		}
+	}
+}
+void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInfo*>& clientesValidados, std::unordered_map<unsigned short, PlayerInfo*>& clientesNoValidados)
+{
+	std::string message;
+	message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK);
+	for (const auto& elem : clientesValidados)
+	{
+		if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+		{
+			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+		}
+	}
+	for (const auto& elem : clientesNoValidados)
+	{
+		if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+		{
+			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 		}
 	}
 }
@@ -172,7 +207,7 @@ int main()
 	}
 
 	ManageConnections(*socket, end, incommingClients, validatedClients);
-
+	Disconnect(*socket, validatedClients, incommingClients);
 	delete socket;
 	return 0;
 }
