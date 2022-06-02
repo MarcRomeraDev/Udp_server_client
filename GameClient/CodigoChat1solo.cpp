@@ -5,7 +5,9 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include "Client.h"
+
 #define SIZE 10.f
+
 ///TAMAÑO EN PX DE LA VENTANA
 #define W_WINDOW_PX 800
 #define H_WINDOW_PX 600
@@ -100,7 +102,7 @@ void DrawDungeon()
 }
 
 int main()
-{	
+{
 	srand(static_cast<unsigned>(time(nullptr)));
 
 	Client client;
@@ -110,13 +112,13 @@ int main()
 	// Entras / Creas una partida
 	while (!client.connected)
 	{
-		std::cin >> input;
-
+			std::cin >> input;
 		switch (client.lastReceived)
 		{
 		case Header::CHALLENGE:
+
 			message = std::to_string((int)Header::RSP_CHALLENGE);
-			message += "<" + input;
+			message += "<" + std::to_string(client.player.saltTag) + "<" + input + "<" + client.player.name;
 			client.SendMessage(message);
 			break;
 		default:

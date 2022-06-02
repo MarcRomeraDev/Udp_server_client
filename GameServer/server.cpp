@@ -5,7 +5,7 @@
 #include <Types.h>
 #include <PlayerInfo.h>
 
-float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket) // recibe puerto destino
+float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket, std::string salt) // recibe puerto destino
 {
 	std::string message;
 	message = std::to_string((int)Header::CHALLENGE);
@@ -14,15 +14,18 @@ float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket
 	numero2 = (rand() % 100) + 1;
 	numero1 = (rand() % 100) + 1 + numero2;
 
-	if (rand() % 2 == 0)
+	if (rand() % 2 == 0) //Sum operation
 	{
 		message += std::to_string(numero1) + "+" + std::to_string(numero2);
 	}
-	else {
+	else //Substract operation
+	{
 		message += std::to_string(numero1) + "-" + std::to_string(numero2);
 		numero2 *= -1;
 	}
 
+	message += "<" + salt;
+	//Send challenge
 	if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 	{
 		std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
@@ -39,10 +42,11 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	char data[1024] = "";
 	std::size_t received = 0;
 	std::vector<std::string> dataReceived;
+	Header header;
 
-	//Wait for incoming messages	
 	while (!end)
 	{
+		//Wait for incoming messages	
 		if (!socket.Receive(data, sizeof(data), received, sender, port))
 		{
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
@@ -54,8 +58,11 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 
 		std::cout << port << " dice: " << dataReceived[0] << " Con la informacion: " << data << std::endl;
 
+		header = static_cast<Header>(atoi(dataReceived[0].c_str()));
+
 		if (clientsValidados.find(port) != clientsValidados.end()) // Check if client already exist
 		{
+			std::cout << "CLIENTE VALIDADO" << std::endl;
 			//SWITCH INGAME
 			// 
 			//incoming message of an existing client, forward to all other clients
@@ -70,22 +77,48 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			//	}
 			//}
 		}
-		else if(clientsNoValidados.find(port) != clientsNoValidados.end())
+		else if (clientsNoValidados.find(port) != clientsNoValidados.end())
 		{
-			std::cout << "CLIENTE NO VALIDADO AUN" << std::endl;
-			//SWITCH PRE GAME
-			//clientsNoValidados.at(port);
-			// if validated
-				//player.name = 
-				//clientesNoValidados.at(port).delete
-				//clientesValidados.insert(std::pair<unsigned short, PlayerInfo*>(port, player));
+			switch (header)
+			{
+			case Header::RSP_CHALLENGE:
+				if ((clientsNoValidados.at(port)->clientSalt & clientsNoValidados.at(port)->serverSalt) == static_cast<uint32_t>(std::stoul(dataReceived[1])))
+				{
+					if (clientsNoValidados.at(port)->challengeSolution == atoi(dataReceived[2].c_str()))
+					{
+						clientsNoValidados.at(port)->name = dataReceived[3];
+						clientsValidados.insert({ port, clientsNoValidados[port] });
+						clientsNoValidados.erase(port);
+
+						message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+						message += "<WELCOME\n";
+
+						if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
+						{
+							std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+						}
+					}
+				}
+				else
+				{
+					std::cout << "CLIENTE NO VALIDADO AUN" << std::endl;
+				}
+				break;
+			default:
+				break;
+			}
 		}
 		else // is new client
 		{
 			//ENVIAR CHALLENGE AL CLIENTE NO VALIDADO
 			PlayerInfo* player = new PlayerInfo;
-			player->challengeSolution = CreateChallenge(sender, port, socket);
-			clientsNoValidados.insert(std::pair<unsigned short, PlayerInfo*>(port, player));
+			player->clientSalt = (uint32_t)atoi(dataReceived[1].c_str());
+			player->serverSalt = CreateSALT();
+			player->port = port;
+			player->ip = sender;
+			clientsNoValidados.insert({ port, player });
+
+			player->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(player->serverSalt));
 		}
 	}
 }
