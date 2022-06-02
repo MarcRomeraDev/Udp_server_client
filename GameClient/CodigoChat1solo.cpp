@@ -25,9 +25,9 @@
 #define NUM_OBSTACLES_2x2 10
 
 #define MAX_MENSAJES 30
+
 void Disconnect(Client& _client)
 {
-
 	std::string message;
 	//Desconexion
 	message = "";
@@ -35,6 +35,7 @@ void Disconnect(Client& _client)
 
 	_client.SendCriticalMessage(Header::CLIENT_DISCONNECT, message);
 }
+
 void DrawDungeon(Client& _client)
 {
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");

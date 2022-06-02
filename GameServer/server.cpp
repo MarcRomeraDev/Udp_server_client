@@ -5,6 +5,22 @@
 #include <Types.h>
 #include <PlayerInfo.h>
 
+struct Game
+{
+	std::vector<PlayerInfo> players;
+	int gameTime = 30;
+};
+
+int GetDistanceBetweenChars(char a, char b)
+{
+	int distance = abs(a - b);
+	if (distance > 13)
+	{
+		distance = 26 - distance;
+	}
+	return distance;
+}
+
 float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket, std::string salt) // recibe puerto destino
 {
 	std::string message;
@@ -34,7 +50,7 @@ float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket
 	return numero1 + numero2;
 }
 
-void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned short, PlayerInfo*> clientsNoValidados, std::unordered_map<unsigned short, PlayerInfo*> clientsValidados)
+void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned short, PlayerInfo*> clientsNoValidados, std::unordered_map<unsigned short, PlayerInfo*> clientsValidados, std::vector<Game*> games)
 {
 	std::string message = "";
 	std::string sender;
@@ -44,6 +60,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	std::size_t received = 0;
 	std::vector<std::string> dataReceived;
 	Header header;
+	bool gameAvailable = false;
 
 	while (!end)
 	{
@@ -66,7 +83,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			switch (header)
 			{
 			case Header::CONNECT:
-			std::cout << "CLIENTE VALIDADO CONECTADO" << std::endl;
+				std::cout << "CLIENTE VALIDADO CONECTADO" << std::endl;
 				clientsValidados.at(port)->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
 				message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 				message += "<WELCOME\n";
@@ -77,7 +94,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 				}
 				break;
 			case Header::CLIENT_DISCONNECT:
-			std::cout << "CLIENTE VALIDADO DESCONECTADO" << std::endl;
+				std::cout << "CLIENTE VALIDADO DESCONECTADO" << std::endl;
 				message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 				message += "<Disconnecting...\n";
 				if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
@@ -111,6 +128,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 				clientsNoValidados.at(port)->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(clientsNoValidados.at(port)->serverSalt));
 				break;
 			case Header::CLIENT_DISCONNECT:
+				std::cout << "CLIENTE NO VALIDADO DESCONECTADO" << std::endl;
 				message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 				message += "<Disconnecting...\n";
 				if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
@@ -128,6 +146,37 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 						clientsValidados.insert({ port, clientsNoValidados[port] });
 						clientsNoValidados.erase(port);
 
+						//CREATE GAME OR JOIN EXISTING ONE WITH LESS THAN TWO PLAYERS
+						if (games.size() > 0)
+						{
+							gameAvailable = false;
+							for (const auto& match : games)
+							{
+								//If the game is not full and the distance between the first character of players' names is less than 10, join game
+								if (match->players.size() < 2 && GetDistanceBetweenChars(match->players[0].name[0], clientsValidados.at(port)->name[0]) < 10)
+								{
+									std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
+									match->players.push_back(*it->second);
+									gameAvailable = true;
+									break;
+								}
+							}
+							if (!gameAvailable) //if all the items are full or the requirements are not met, create new game
+							{
+								Game* game = new Game;
+								std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
+								game->players.push_back(*it->second);
+								games.push_back(game);
+							}
+						}
+						else //No games exist, create new game
+						{
+							Game* game = new Game;
+							std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
+							game->players.push_back(*it->second);
+							games.push_back(game);
+						}
+
 						message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 						message += "<WELCOME\n";
 
@@ -139,18 +188,22 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 					else
 					{
 						std::cout << "CHALLENGE INCORRECTO" << std::endl;
+
 						if (clientsNoValidados.at(port)->attemptCount >= MAX_ATTEMPS_PER_CLIENT)
 						{
 							//Desconectar Cliente
 							message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
 							message += "<Too many attemps, disconnecting...\n";
+
 							if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 							{
 								std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 							}
 						}
 						else
+						{
 							clientsNoValidados.at(port)->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(clientsNoValidados.at(port)->serverSalt));
+						}
 						clientsNoValidados.at(port)->attemptCount++;
 					}
 				}
@@ -178,6 +231,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 		}
 	}
 }
+
 void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInfo*>& clientesValidados, std::unordered_map<unsigned short, PlayerInfo*>& clientesNoValidados)
 {
 	std::string message;
@@ -202,6 +256,7 @@ void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInf
 	clientesValidados.clear();
 }
 
+
 int main()
 {
 	srand(static_cast<unsigned>(time(nullptr)));
@@ -212,6 +267,8 @@ int main()
 	std::unordered_map<unsigned short, PlayerInfo*> incommingClients;
 	std::unordered_map<unsigned short, PlayerInfo*> validatedClients;
 
+	std::vector<Game*> games;
+
 	if (!socket->Bind(55002))
 	{
 		std::cout << "ERROR AL BINDEAR AL PUERTO" << std::endl;
@@ -219,8 +276,8 @@ int main()
 		return -1;
 	}
 
-	ManageConnections(*socket, end, incommingClients, validatedClients);
-	Disconnect(*socket, validatedClients, incommingClients);
+	ManageConnections(*socket, end, incommingClients, validatedClients, games);
+	//Disconnect(*socket, validatedClients, incommingClients);
 	delete socket;
 	return 0;
 }
