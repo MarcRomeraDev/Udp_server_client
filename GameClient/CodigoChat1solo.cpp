@@ -42,7 +42,7 @@ void DrawDungeon(Client& _client)
 	shape.setOutlineColor(sf::Color::Black);
 	shape.setOutlineThickness(2.f);
 
-	while (_window.isOpen() && _client.connected)
+	while (_window.isOpen())
 	{
 		sf::Event event;
 		bool playerMoved = false;

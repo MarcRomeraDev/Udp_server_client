@@ -179,6 +179,7 @@ void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInf
 		{
 			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 		}
+		delete clientesValidados.at(elem.first);
 	}
 	for (const auto& elem : clientesNoValidados)
 	{
@@ -186,7 +187,10 @@ void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInf
 		{
 			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 		}
+		delete clientesNoValidados.at(elem.first);
 	}
+	clientesNoValidados.clear();
+	clientesValidados.clear();
 }
 
 int main()
