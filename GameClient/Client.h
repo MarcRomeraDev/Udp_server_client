@@ -19,7 +19,6 @@ private:
 
 	void ReceiveMessages(bool*);
 	void Connect();
-	void SendCriticalMessage(Header header, std::string data);
 
 public:
 	Client();
@@ -28,5 +27,6 @@ public:
 	bool connected = false; 
 	PlayerInfo player;
 
+	void SendCriticalMessage(Header header, std::string data);
 	void SendMessage(std::string);
 };

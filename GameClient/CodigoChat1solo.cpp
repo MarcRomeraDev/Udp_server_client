@@ -25,15 +25,24 @@
 #define NUM_OBSTACLES_2x2 10
 
 #define MAX_MENSAJES 30
+void Disconnect(Client& _client)
+{
 
-void DrawDungeon()
+	std::string message;
+	//Desconexion
+	message = "";
+	message = std::to_string((int)Header::CLIENT_DISCONNECT);
+
+	_client.SendCriticalMessage(Header::CLIENT_DISCONNECT, message);
+}
+void DrawDungeon(Client& _client)
 {
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");
 	sf::RectangleShape shape(sf::Vector2f(SIZE, SIZE));
 	shape.setOutlineColor(sf::Color::Black);
 	shape.setOutlineThickness(2.f);
 
-	while (_window.isOpen())
+	while (_window.isOpen() && _client.connected)
 	{
 		sf::Event event;
 		bool playerMoved = false;
@@ -42,12 +51,13 @@ void DrawDungeon()
 			switch (event.type)
 			{
 			case sf::Event::Closed:
+				Disconnect(_client);
 				_window.close();
 				break;
 			case sf::Event::KeyPressed:
 				if (event.key.code == sf::Keyboard::Escape)
 				{
-					//Desconexion
+					Disconnect(_client);
 					_window.close();
 				}
 				if (event.key.code == sf::Keyboard::Left)
@@ -126,7 +136,7 @@ int main()
 			break;
 		}
 	}
-	DrawDungeon();
+	DrawDungeon(client);
 }
 
 //std::vector<std::string> aMensajes;

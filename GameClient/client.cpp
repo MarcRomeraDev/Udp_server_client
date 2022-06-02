@@ -46,8 +46,8 @@ void Client::SendCriticalMessage(Header header, std::string data)
 	case Header::CONNECT:
 		confirmationHeader = Header::CHALLENGE;
 		break;
-	case Header::ACTION:
-		confirmationHeader = Header::OK_ACTION;
+	case Header::CLIENT_DISCONNECT:
+		confirmationHeader = Header::CLIENT_DISCONNECT_ACK;
 		break;
 	default:
 		std::cout << "Error" << std::endl;
@@ -62,7 +62,7 @@ void Client::SendCriticalMessage(Header header, std::string data)
 	{
 		end = std::chrono::system_clock::now();
 		duration = end - start;
-		if (duration.count() >= 500)
+		if (duration.count() >= 50)
 		{
 			SendMessage(data);
 			start = std::chrono::system_clock::now();
@@ -105,6 +105,10 @@ void Client::ReceiveMessages(bool* end)
 		case Header::ACK_CHALLENGE:
 			std::cout << dataReceived[1] << std::endl;
 			connected = true;
+		case Header::SERVER_DISCONNECT:
+			std::cout << dataReceived[1] << std::endl;
+			*end = true;
+			connected = false;
 		default:
 			break;
 		}
