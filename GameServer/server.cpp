@@ -158,7 +158,7 @@ bool ValidateMovement(int x, int y)
 	return(x * SIZE > W_WINDOW_PX || x * SIZE < 0 || y * SIZE > H_WINDOW_PX || y * SIZE < 0);
 }
 
-void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* commandsToValidate, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados) // Can only be Move or Shoot
+void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command*>* commandsToValidate, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados) // Can only be Move or Shoot
 {
 	std::vector<std::string> dataReceived;
 	Header header;
@@ -168,11 +168,11 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 	{
 		while (!commandsToValidate->empty())
 		{
-			Command command = commandsToValidate->front();
+			Command* command = commandsToValidate->front();
 			commandsToValidate->pop();
 
 			dataReceived.clear();
-			std::string s(command.data);
+			std::string s(command->data);
 			dataReceived = Split(s, '<');
 			bool val = false;
 
@@ -188,47 +188,47 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 					switch (direction)
 					{
 					case 0: //up
-						clientesValidados->at(command.senderPort)->position.y--;
+						clientesValidados->at(command->senderPort)->position.y--;
 						break;
 					case 1: //down
-						clientesValidados->at(command.senderPort)->position.y++;
+						clientesValidados->at(command->senderPort)->position.y++;
 						break;
 					case 2: //left
-						clientesValidados->at(command.senderPort)->position.x--;
+						clientesValidados->at(command->senderPort)->position.x--;
 						break;
 					case 3: // right
-						clientesValidados->at(command.senderPort)->position.x++;
+						clientesValidados->at(command->senderPort)->position.x++;
 						break;
 					default:
 						break;
 					}
 
 					message = std::to_string((int)Header::OK_ACTION);
-					message += "<" + std::to_string(command.id);
-					val = ValidateMovement(clientesValidados->at(command.senderPort)->position.x, clientesValidados->at(command.senderPort)->position.y);
+					message += "<" + std::to_string(command->id);
+					val = ValidateMovement(clientesValidados->at(command->senderPort)->position.x, clientesValidados->at(command->senderPort)->position.y);
 					message += "<" + std::to_string(val);
 					if (!val)
 					{
 						switch (direction)
 						{
 						case 0: //up
-							clientesValidados->at(command.senderPort)->position.y++;
+							clientesValidados->at(command->senderPort)->position.y++;
 							break;
 						case 1: //down
-							clientesValidados->at(command.senderPort)->position.y--;
+							clientesValidados->at(command->senderPort)->position.y--;
 							break;
 						case 2: //left
-							clientesValidados->at(command.senderPort)->position.x++;
+							clientesValidados->at(command->senderPort)->position.x++;
 							break;
 						case 3: // right
-							clientesValidados->at(command.senderPort)->position.x--;
+							clientesValidados->at(command->senderPort)->position.x--;
 							break;
 						default:
 							break;
 						}
-						message += "<" + std::to_string(clientesValidados->at(command.senderPort)->position.x) + "<" + std::to_string(clientesValidados->at(command.senderPort)->position.y);
+						message += "<" + std::to_string(clientesValidados->at(command->senderPort)->position.x) + "<" + std::to_string(clientesValidados->at(command->senderPort)->position.y);
 					}
-					if (!socket->Send(message.c_str(), message.size() + 1, command.ipAddress, command.senderPort));
+					if (!socket->Send(message.c_str(), message.size() + 1, command->ipAddress, command->senderPort));
 					{
 						std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 					}
@@ -316,7 +316,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			case Header::COMMAND:
 				//clientsValidados.at(port)->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
 				//message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
-				commandsToValidate.push(new Command())
+				commandsToValidate.push(new Command());
 				break;
 			default:
 
