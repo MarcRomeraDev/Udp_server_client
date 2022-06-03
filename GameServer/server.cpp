@@ -4,7 +4,10 @@
 #include <UdpSocket.h>
 #include <Types.h>
 #include <PlayerInfo.h>
+#include <thread>
+#include <chrono>
 
+typedef std::chrono::system_clock::time_point clock;
 struct Game
 {
 	std::vector<PlayerInfo> players;
@@ -50,8 +53,50 @@ float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket
 	return numero1 + numero2;
 }
 
+void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsigned short, PlayerInfo*>* clientesNoValidados, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados, std::vector<Game*>* games)
+{
+	clock start;
+
+	std::chrono::duration<float, std::milli> duration;
+	std::string message;
+	message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK);
+
+	while (!*end)
+	{
+		start = std::chrono::system_clock::now();
+
+		for (const auto& elem : *clientesValidados)
+		{
+			duration = start - elem.second->timeStamp;
+			if(duration > )
+			if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+			{
+				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+			}
+			delete clientesValidados.at(elem.first);
+		}
+		for (const auto& elem : clientesNoValidados)
+		{
+			if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+			{
+				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+			}
+			delete clientesNoValidados.at(elem.first);
+		}
+
+		
+		if (duration.count() >= 50)
+		{
+			SendMessage(data);
+			start = std::chrono::system_clock::now();
+		}
+	}
+}
+
 void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned short, PlayerInfo*> clientsNoValidados, std::unordered_map<unsigned short, PlayerInfo*> clientsValidados, std::vector<Game*> games)
 {
+	std::thread tDisconnections(ManageDisconnections, socket, &end, &clientsNoValidados, &clientsValidados, &games);
+	tDisconnections.detach();
 	std::string message = "";
 	std::string sender;
 	const int MAX_ATTEMPS_PER_CLIENT = 3;
@@ -147,7 +192,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 						clientsNoValidados.erase(port);
 
 						message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
-						
+
 
 						//CREATE GAME OR JOIN EXISTING ONE WITH LESS THAN TWO PLAYERS
 						if (games.size() > 0)
@@ -182,7 +227,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 							games.push_back(game);
 							message += "<0"; // le dice al cliente que el es el player 1
 						}
-							message += "<WELCOME\n";
+						message += "<WELCOME\n";
 
 						if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 						{
@@ -264,7 +309,6 @@ void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInf
 int main()
 {
 	srand(static_cast<unsigned>(time(nullptr)));
-
 	UdpSocket* socket = new UdpSocket();
 	// Crear salas
 	bool end = false;
