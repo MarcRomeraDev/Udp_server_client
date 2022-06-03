@@ -113,12 +113,15 @@ void Client::ReceiveMessages(bool* end)
 		case Header::SERVER_DISCONNECT:
 			*end = true;
 			connected = false;
+				cleanDisconnect = true;
+			std::cout << "Server is down :(\n Disconnecting...";
+
 			break;
 		case Header::CLIENT_DISCONNECT_ACK:
 			*end = true;
 			connected = false;
 			cleanDisconnect = true;
-			std::cout << "Desconectado por inactividad\nPULSE ENTER TECLA PARA CONTINUAR";
+			std::cout << "Desconectado por inactividad\nPULSE CUALQUIER TECLA Y ENTER PARA CONTINUAR";
 			break;
 		case Header::MESSAGE:
 			std::cout << dataReceived[1] << std::endl;

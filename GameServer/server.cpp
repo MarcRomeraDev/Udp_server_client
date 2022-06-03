@@ -24,6 +24,30 @@ int GetDistanceBetweenChars(char a, char b)
 	return distance;
 }
 
+void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInfo*>& clientesValidados, std::unordered_map<unsigned short, PlayerInfo*>& clientesNoValidados)
+{
+	std::string message;
+	message = std::to_string((int)Header::SERVER_DISCONNECT);
+	for (const auto& elem : clientesValidados)
+	{
+		if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+		{
+			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+		}
+		delete clientesValidados.at(elem.first);
+	}
+	for (const auto& elem : clientesNoValidados)
+	{
+		if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+		{
+			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+		}
+		delete clientesNoValidados.at(elem.first);
+	}
+	clientesNoValidados.clear();
+	clientesValidados.clear();
+}
+
 float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket, std::string salt) // recibe puerto destino
 {
 	std::string message;
@@ -111,6 +135,15 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 	}
 }
 
+void DisconnectServer(bool* end, UdpSocket* socket, std::unordered_map<unsigned short, PlayerInfo*>* clientesNoValidados)
+{
+	int a;
+	std::cin >> a; // Si pulsas enter se cierra el servidor
+	*end = true;
+	Disconnect(UdpSocket & _socket, std::unordered_map<unsigned short, PlayerInfo*>&clientesValidados, std::unordered_map<unsigned short, PlayerInfo*>&clientesNoValidados);
+	delete socket;
+}
+
 void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned short, PlayerInfo*> clientsNoValidados, std::unordered_map<unsigned short, PlayerInfo*> clientsValidados, std::vector<Game*> games)
 {
 	std::string message = "";
@@ -124,6 +157,9 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	bool gameAvailable = false;
 	std::mutex mtx;
 
+	std::thread tDisconnectServer(DisconnectServer, &end, &socket);
+	tDisconnectServer.detach();
+
 	std::thread tDisconnections(ManageDisconnections, &socket, &end, &clientsNoValidados, &clientsValidados, &games, &mtx);
 	tDisconnections.detach();
 
@@ -135,6 +171,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			std::cout << "ERROR AL RECIBIR PACKET" << std::endl;
 			continue;
 		}
+
 		dataReceived.clear();
 		std::string s(data);
 		dataReceived = Split(s, '<');
@@ -307,31 +344,6 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	}
 }
 
-void Disconnect(UdpSocket& _socket, std::unordered_map<unsigned short, PlayerInfo*>& clientesValidados, std::unordered_map<unsigned short, PlayerInfo*>& clientesNoValidados)
-{
-	std::string message;
-	message = std::to_string((int)Header::CLIENT_DISCONNECT_ACK);
-	for (const auto& elem : clientesValidados)
-	{
-		if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
-		{
-			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
-		}
-		delete clientesValidados.at(elem.first);
-	}
-	for (const auto& elem : clientesNoValidados)
-	{
-		if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
-		{
-			std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
-		}
-		delete clientesNoValidados.at(elem.first);
-	}
-	clientesNoValidados.clear();
-	clientesValidados.clear();
-}
-
-
 int main()
 {
 	srand(static_cast<unsigned>(time(nullptr)));
@@ -351,7 +363,8 @@ int main()
 	}
 
 	ManageConnections(*socket, end, incommingClients, validatedClients, games);
-	//Disconnect(*socket, validatedClients, incommingClients);
-	delete socket;
+	
+	Disconnect(*socket, validatedClients, incommingClients);
+	//delete socket;
 	return 0;
 }
