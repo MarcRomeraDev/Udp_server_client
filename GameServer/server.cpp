@@ -5,7 +5,7 @@
 #include <Types.h>
 #include <PlayerInfo.h>
 #include <thread>
-#include <chrono>
+#include <mutex>
 
 typedef std::chrono::system_clock::time_point clock;
 struct Game
@@ -53,8 +53,8 @@ float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket
 	return numero1 + numero2;
 }
 
-void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsigned short, PlayerInfo*>* clientesNoValidados, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados, std::vector<Game*>* games)
-{
+void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsigned short, PlayerInfo*>* clientesNoValidados, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados, std::vector<Game*>* games, std::mutex* mtx)
+{	
 	clock start;
 
 	std::chrono::duration<float, std::milli> duration;
@@ -64,39 +64,45 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 	while (!*end)
 	{
 		start = std::chrono::system_clock::now();
-
+	
+		mtx->lock();
 		for (const auto& elem : *clientesValidados)
 		{
 			duration = start - elem.second->timeStamp;
-			if(duration > )
-			if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+			if (duration.count() > 30000)
 			{
-				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+				if (!socket->Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+				{
+					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+				}
+			
+				clientesValidados->erase(elem.first);
+				delete clientesValidados->at(elem.first);
 			}
-			delete clientesValidados.at(elem.first);
-		}
-		for (const auto& elem : clientesNoValidados)
-		{
-			if (!_socket.Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
-			{
-				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
-			}
-			delete clientesNoValidados.at(elem.first);
 		}
 
-		
-		if (duration.count() >= 50)
+		for (const auto& elem : *clientesNoValidados)
 		{
-			SendMessage(data);
-			start = std::chrono::system_clock::now();
+			duration = start - elem.second->timeStamp;
+			if (duration.count() > 10000)
+			{
+				if (!socket->Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+				{
+					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+				}
+				clientesNoValidados->erase(elem.first);
+				delete clientesNoValidados->at(elem.first);
+			}
 		}
+		mtx->unlock();
+
+		// Dormir el thread
+		std::this_thread::sleep_for (std::chrono::seconds(5));
 	}
 }
 
 void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned short, PlayerInfo*> clientsNoValidados, std::unordered_map<unsigned short, PlayerInfo*> clientsValidados, std::vector<Game*> games)
 {
-	std::thread tDisconnections(ManageDisconnections, socket, &end, &clientsNoValidados, &clientsValidados, &games);
-	tDisconnections.detach();
 	std::string message = "";
 	std::string sender;
 	const int MAX_ATTEMPS_PER_CLIENT = 3;
@@ -106,6 +112,10 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	std::vector<std::string> dataReceived;
 	Header header;
 	bool gameAvailable = false;
+	std::mutex mtx;
+
+	std::thread tDisconnections(ManageDisconnections, socket, &end, &clientsNoValidados, &clientsValidados, &games, &mtx);
+	tDisconnections.detach();
 
 	while (!end)
 	{
@@ -125,6 +135,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 
 		if (clientsValidados.find(port) != clientsValidados.end()) // Check if client already exist
 		{
+		clientsValidados.at(port)->timeStamp = std::chrono::system_clock::now();
 			switch (header)
 			{
 			case Header::CONNECT:

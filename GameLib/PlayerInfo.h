@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML\Graphics.hpp>
+#include <chrono>
 
 class PlayerInfo
 {
@@ -9,7 +10,7 @@ public:
 	std::string ip;
 	std::string name;
 	// Timestamp del ultimo mensage
-	unsigned int timeStamp;
+	std::chrono::system_clock::time_point timeStamp;
 	uint32_t serverSalt; // Salt generated from the server
 	uint32_t clientSalt; // The result of the AND of both Salts
 	uint32_t saltTag;
