@@ -54,7 +54,7 @@ float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket
 }
 
 void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsigned short, PlayerInfo*>* clientesNoValidados, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados, std::vector<Game*>* games, std::mutex* mtx)
-{	
+{
 	clock start;
 
 	std::chrono::duration<float, std::milli> duration;
@@ -64,18 +64,18 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 	while (!*end)
 	{
 		start = std::chrono::system_clock::now();
-	
+
 		mtx->lock();
 		for (const auto& elem : *clientesValidados)
 		{
 			duration = start - elem.second->timeStamp;
-			if (duration.count() > 30000)
+			if (duration.count() > 5000)
 			{
 				if (!socket->Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
 				{
 					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 				}
-			
+
 				clientesValidados->erase(elem.first);
 				delete clientesValidados->at(elem.first);
 			}
@@ -84,7 +84,7 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 		for (const auto& elem : *clientesNoValidados)
 		{
 			duration = start - elem.second->timeStamp;
-			if (duration.count() > 10000)
+			if (duration.count() > 5000)
 			{
 				if (!socket->Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
 				{
@@ -97,7 +97,7 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 		mtx->unlock();
 
 		// Dormir el thread
-		std::this_thread::sleep_for (std::chrono::seconds(5));
+		std::this_thread::sleep_for(std::chrono::seconds(5));
 	}
 }
 
@@ -132,10 +132,11 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 		std::cout << port << " dice: " << dataReceived[0] << " Con la informacion: " << data << std::endl;
 
 		header = static_cast<Header>(atoi(dataReceived[0].c_str()));
-
+		mtx.lock();
 		if (clientsValidados.find(port) != clientsValidados.end()) // Check if client already exist
 		{
-		clientsValidados.at(port)->timeStamp = std::chrono::system_clock::now();
+			clientsValidados.at(port)->timeStamp = std::chrono::system_clock::now();
+
 			switch (header)
 			{
 			case Header::CONNECT:
@@ -176,6 +177,8 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 		}
 		else if (clientsNoValidados.find(port) != clientsNoValidados.end())
 		{
+			clientsNoValidados.at(port)->timeStamp = std::chrono::system_clock::now();
+
 			switch (header)
 			{
 			case Header::CONNECT:
@@ -285,10 +288,12 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 			player->serverSalt = CreateSALT();
 			player->port = port;
 			player->ip = sender;
+			player->timeStamp = std::chrono::system_clock::now();
 			clientsNoValidados.insert({ port, player });
 
 			player->challengeSolution = CreateChallenge(sender, port, socket, std::to_string(player->serverSalt));
 		}
+		mtx.unlock();
 	}
 }
 
