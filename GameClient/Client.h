@@ -26,6 +26,7 @@ public:
 	Header lastReceived;
 	bool connected = false; 
 	PlayerInfo player;
+	PlayerInfo other;
 
 	void SendCriticalMessage(Header header, std::string data);
 	void SendMessage(std::string);

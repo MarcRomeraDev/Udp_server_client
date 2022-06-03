@@ -146,6 +146,9 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 						clientsValidados.insert({ port, clientsNoValidados[port] });
 						clientsNoValidados.erase(port);
 
+						message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+						
+
 						//CREATE GAME OR JOIN EXISTING ONE WITH LESS THAN TWO PLAYERS
 						if (games.size() > 0)
 						{
@@ -158,6 +161,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 									std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
 									match->players.push_back(*it->second);
 									gameAvailable = true;
+									message += "<1"; // le dice al cliente que el es el player 2
 									break;
 								}
 							}
@@ -167,6 +171,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 								std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
 								game->players.push_back(*it->second);
 								games.push_back(game);
+								message += "<0"; // le dice al cliente que el es el player 1
 							}
 						}
 						else //No games exist, create new game
@@ -175,10 +180,9 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 							std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
 							game->players.push_back(*it->second);
 							games.push_back(game);
+							message += "<0"; // le dice al cliente que el es el player 1
 						}
-
-						message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
-						message += "<WELCOME\n";
+							message += "<WELCOME\n";
 
 						if (!socket.Send(message.c_str(), message.size() + 1, sender, port))
 						{

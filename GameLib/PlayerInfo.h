@@ -12,12 +12,13 @@ public:
 	unsigned int timeStamp;
 	uint32_t serverSalt; // Salt generated from the server
 	uint32_t clientSalt; // The result of the AND of both Salts
+	uint32_t saltTag;
 	int challengeSolution;
 	int attemptCount;
 
-	uint32_t saltTag; //<<<<TIENE QUE SER UN BINARIO???>>>>
 
 	//Player ingame info
+	int playerNum;
 	sf::Vector2i position;
 	float shotCooldown;
 	float movementSpeed;

@@ -103,7 +103,12 @@ void Client::ReceiveMessages(bool* end)
 			player.saltTag = (player.clientSalt & player.serverSalt); //AND binario para generar el tag unico de cada cliente
 			break;
 		case Header::ACK_CHALLENGE:
-			std::cout << dataReceived[1] << std::endl;
+			std::cout << dataReceived[2] << std::endl;
+		
+			
+			player.playerNum = atoi(dataReceived[1].c_str()); // 1 means you are player 1 ; 2 means you are player 2
+			
+			other.playerNum = (atoi(dataReceived[1].c_str())+ 1) %2; // the other player
 			connected = true;
 			break;
 		case Header::SERVER_DISCONNECT:

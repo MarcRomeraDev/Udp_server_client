@@ -39,10 +39,20 @@ void Disconnect(Client& _client)
 void DrawDungeon(Client& _client)
 {
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");
-	sf::RectangleShape shape(sf::Vector2f(SIZE, SIZE));
+	sf::RectangleShape shape;
+	shape = sf::RectangleShape(sf::Vector2f(SIZE, SIZE));
 	shape.setOutlineColor(sf::Color::Black);
 	shape.setOutlineThickness(2.f);
-
+	if (_client.player.playerNum == 0)
+	{
+		_client.player.position.x = 0; _client.player.position.y = 0;
+		_client.other.position.x = W_WINDOW_TITLE - 1; _client.other.position.y = H_WINDOW_TITLE - 1;
+	}
+	else
+	{
+		_client.player.position.x = W_WINDOW_TITLE - 1; _client.player.position.y = H_WINDOW_TITLE - 1;
+		_client.other.position.x = 0; _client.other.position.y = 0;
+	}
 	while (_window.isOpen())
 	{
 		sf::Event event;
@@ -63,18 +73,22 @@ void DrawDungeon(Client& _client)
 				}
 				if (event.key.code == sf::Keyboard::Left)
 				{
+					_client.player.position.x--; 
 					std::cout << "LEFT\n";
 				}
 				else if (event.key.code == sf::Keyboard::Up)
 				{
+					_client.player.position.y--;
 					std::cout << "UP\n";
 				}
 				else if (event.key.code == sf::Keyboard::Right)
 				{
+					_client.player.position.x++;
 					std::cout << "RIGTH\n";
 				}
 				else if (event.key.code == sf::Keyboard::Down)
 				{
+					_client.player.position.y++;
 					std::cout << "DOWN\n";
 				}
 				break;
@@ -94,17 +108,15 @@ void DrawDungeon(Client& _client)
 			}
 		}
 
-		sf::Vector2f position;
-		position.x = 0; position.y = 0;
 		shape.setFillColor(sf::Color::Blue);
 		shape.setFillColor(sf::Color(0, 0, 255, 255));
-		shape.setPosition(sf::Vector2f(position.x * SIZE, position.y * SIZE));
+		shape.setPosition(sf::Vector2f(_client.player.position.x * SIZE, _client.player.position.y * SIZE));
 		_window.draw(shape);
 
-		position.x = W_WINDOW_TITLE - 1; position.y = H_WINDOW_TITLE - 1;
+		
 		shape.setFillColor(sf::Color::Green);
 		shape.setFillColor(sf::Color(255, 255, 0, 255));
-		shape.setPosition(sf::Vector2f(position.x * SIZE, position.y * SIZE));
+		shape.setPosition(sf::Vector2f(_client.other.position.x * SIZE, _client.other.position.y * SIZE));
 		_window.draw(shape);
 
 		_window.display();
