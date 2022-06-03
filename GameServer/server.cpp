@@ -7,7 +7,7 @@
 #include <thread>
 #include <mutex>
 
-typedef std::chrono::system_clock::time_point clock;
+
 struct Game
 {
 	std::vector<PlayerInfo> players;
@@ -55,6 +55,7 @@ float CreateChallenge(std::string sender, unsigned short port, UdpSocket& socket
 
 void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsigned short, PlayerInfo*>* clientesNoValidados, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados, std::vector<Game*>* games, std::mutex* mtx)
 {
+	typedef std::chrono::system_clock::time_point clock;
 	clock start;
 
 	std::chrono::duration<float, std::milli> duration;
@@ -114,7 +115,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	bool gameAvailable = false;
 	std::mutex mtx;
 
-	std::thread tDisconnections(ManageDisconnections, socket, &end, &clientsNoValidados, &clientsValidados, &games, &mtx);
+	std::thread tDisconnections(ManageDisconnections, &socket, &end, &clientsNoValidados, &clientsValidados, &games, &mtx);
 	tDisconnections.detach();
 
 	while (!end)
