@@ -103,25 +103,25 @@ void Client::ReceiveMessages(bool* end)
 			player.saltTag = (player.clientSalt & player.serverSalt); //AND binario para generar el tag unico de cada cliente
 			break;
 		case Header::ACK_CHALLENGE:
-			std::cout << dataReceived[2] << std::endl;		
-			
+			std::cout << dataReceived[2] << std::endl;
+
 			player.playerNum = atoi(dataReceived[1].c_str()); // 1 means you are player 1 ; 2 means you are player 2
-			
-			other.playerNum = (atoi(dataReceived[1].c_str())+ 1) %2; // the other player
+
+			other.playerNum = (atoi(dataReceived[1].c_str()) + 1) % 2; // the other player
 			connected = true;
 			break;
 		case Header::SERVER_DISCONNECT:
 			*end = true;
 			connected = false;
-				cleanDisconnect = true;
-			std::cout << "Server is down :(\n Disconnecting...";
+			cleanDisconnect = true;
+			std::cout << "Servidor desconectado\nPULSE CUALQUIER TECLA Y ENTER PARA CERRAR";
 
 			break;
 		case Header::CLIENT_DISCONNECT_ACK:
 			*end = true;
 			connected = false;
 			cleanDisconnect = true;
-			std::cout << "Desconectado por inactividad\nPULSE CUALQUIER TECLA Y ENTER PARA CONTINUAR";
+			std::cout << "Desconectado por inactividad\nPULSE CUALQUIER TECLA Y ENTER PARA CERRAR";
 			break;
 		case Header::MESSAGE:
 			std::cout << dataReceived[1] << std::endl;

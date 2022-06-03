@@ -3,6 +3,7 @@
 #include <UdpSocket.h>
 #include <Types.h>
 #include <PlayerInfo.h>
+#include <queue>
 
 class Client
 {
@@ -27,6 +28,8 @@ public:
 	bool cleanDisconnect = false;
 	PlayerInfo player;
 	PlayerInfo other;
+
+	std::queue<Command> commands;
 
 	void SendCriticalMessage(Header header, std::string data);
 	void SendMessage(std::string);

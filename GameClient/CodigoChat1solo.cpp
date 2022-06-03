@@ -32,8 +32,10 @@ void Disconnect(Client& _client)
 	//Desconexion
 	message = "";
 	message = std::to_string((int)Header::CLIENT_DISCONNECT);
-
-	_client.SendCriticalMessage(Header::CLIENT_DISCONNECT, message);
+	if (!_client.cleanDisconnect)
+	{
+		_client.SendCriticalMessage(Header::CLIENT_DISCONNECT, message);
+	}
 }
 
 void DrawDungeon(Client& _client)
@@ -53,7 +55,7 @@ void DrawDungeon(Client& _client)
 		_client.player.position.x = W_WINDOW_TITLE - 1; _client.player.position.y = H_WINDOW_TITLE - 1;
 		_client.other.position.x = 0; _client.other.position.y = 0;
 	}
-	while (_window.isOpen())
+	while (_window.isOpen() && !_client.cleanDisconnect)
 	{
 		sf::Event event;
 		bool playerMoved = false;
@@ -73,7 +75,7 @@ void DrawDungeon(Client& _client)
 				}
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					_client.player.position.x--; 
+					_client.player.position.x--;
 					std::cout << "LEFT\n";
 				}
 				else if (event.key.code == sf::Keyboard::Up)
@@ -113,7 +115,7 @@ void DrawDungeon(Client& _client)
 		shape.setPosition(sf::Vector2f(_client.player.position.x * SIZE, _client.player.position.y * SIZE));
 		_window.draw(shape);
 
-		
+
 		shape.setFillColor(sf::Color::Green);
 		shape.setFillColor(sf::Color(255, 255, 0, 255));
 		shape.setPosition(sf::Vector2f(_client.other.position.x * SIZE, _client.other.position.y * SIZE));
