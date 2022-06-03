@@ -66,36 +66,45 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 	{
 		start = std::chrono::system_clock::now();
 
-		mtx->lock();
-		for (const auto& elem : *clientesValidados)
+		for (auto it = clientesValidados->begin(); it != clientesValidados->end();)
 		{
-			duration = start - elem.second->timeStamp;
+			duration = start - it->second->timeStamp;
 			if (duration.count() > 5000)
 			{
-				if (!socket->Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+				if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
 				{
 					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 				}
-
-				clientesValidados->erase(elem.first);
-				delete clientesValidados->at(elem.first);
+				mtx->lock();
+				delete clientesValidados->at(it->first);
+				it = clientesValidados->erase(it);
+				mtx->unlock();
+			}
+			else
+			{
+				++it;
 			}
 		}
 
-		for (const auto& elem : *clientesNoValidados)
+		for (auto it = clientesNoValidados->begin(); it != clientesNoValidados->end();)
 		{
-			duration = start - elem.second->timeStamp;
+			duration = start - it->second->timeStamp;
 			if (duration.count() > 5000)
 			{
-				if (!socket->Send(message.c_str(), message.size() + 1, elem.second->ip, elem.second->port))
+				if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
 				{
 					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 				}
-				clientesNoValidados->erase(elem.first);
-				delete clientesNoValidados->at(elem.first);
+				mtx->lock();
+				delete clientesNoValidados->at(it->first);
+				it = clientesNoValidados->erase(it);
+				mtx->unlock();
+			}
+			else
+			{
+				++it;
 			}
 		}
-		mtx->unlock();
 
 		// Dormir el thread
 		std::this_thread::sleep_for(std::chrono::seconds(5));

@@ -23,7 +23,8 @@ public:
 	Client();
 	~Client();
 	Header lastReceived;
-	bool connected = false; 
+	bool connected = false;
+	bool cleanDisconnect = false;
 	PlayerInfo player;
 	PlayerInfo other;
 

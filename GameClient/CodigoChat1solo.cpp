@@ -121,7 +121,6 @@ void DrawDungeon(Client& _client)
 
 		_window.display();
 	}
-
 }
 
 int main()
@@ -139,14 +138,20 @@ int main()
 		{
 		case Header::CHALLENGE:
 			std::cin >> input;
-
-			message = std::to_string((int)Header::RSP_CHALLENGE);
-			message += "<" + std::to_string(client.player.saltTag) + "<" + input + "<" + client.player.name;
-			client.SendMessage(message);
-			client.lastReceived = Header::COUNT;
+			if (!client.cleanDisconnect)
+			{
+				message = std::to_string((int)Header::RSP_CHALLENGE);
+				message += "<" + std::to_string(client.player.saltTag) + "<" + input + "<" + client.player.name;
+				client.SendMessage(message);
+				client.lastReceived = Header::COUNT;
+			}
 			break;
 		default:
 			break;
+		}
+		if (client.cleanDisconnect)
+		{
+			return 0;
 		}
 	}
 	DrawDungeon(client);
