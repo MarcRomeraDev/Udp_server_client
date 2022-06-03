@@ -10,7 +10,8 @@ enum class Header {
 	CLIENT_DISCONNECT_ACK, // Client -> Server (Notifies the client has disconnected)
     MESSAGE,
 	SERVER_DISCONNECT, // Server -> Client ( Notifies the server has disconnected
-	ACTION,  // Client -> Serve ( Move or Shoot)
+	MOVE,  // Client -> Server
+    SHOOT,
 	OK_ACTION,
 	UPDT_WORLD, // Server -> Client ( Replication of the world to all users )
 	READY, // Server -> Client ( Start countdown when match is complete)

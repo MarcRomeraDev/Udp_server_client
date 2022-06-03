@@ -14,6 +14,17 @@
 #define DISCONECTION_REFRESH_TIME 5
 #define CONFIRMATION_REFRESH_TIME 50
 
+#define SIZE 10.f
+
+///TAMAÑO EN PX DE LA VENTANA
+#define W_WINDOW_PX 800
+#define H_WINDOW_PX 600
+///TAMAÑ˜O EN CELDAS DE LA VENTANA
+#define W_WINDOW_TITLE 80
+#define H_WINDOW_TITLE 60
+///TAMAÑO EN CELDAS DE UNA ZONA DE MAPA
+#define W_WINDOW_TITLE_PART 40
+#define H_WINDOW_TITLE_PART 30
 struct Game
 {
 	std::vector<PlayerInfo> players;
@@ -151,11 +162,15 @@ void DisconnectServer(bool* end, UdpSocket* socket, std::unordered_map<unsigned 
 	Disconnect(*socket, *clientesValidados, *clientesNoValidados);
 	delete socket;
 }
-
+bool ValidateMovement(int x, int y)
+{
+	return(x * SIZE > W_WINDOW_PX || x * SIZE < 0 || y * SIZE > H_WINDOW_PX || y * SIZE < 0);
+}
 void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* commandsToValidate) // Can only be Move or Shoot
 {
 	std::vector<std::string> dataReceived;
 	Header header;
+	int direction = 0;
 	while (!*end)
 	{
 		while(!commandsToValidate->empty())
@@ -170,9 +185,22 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 			for(int i = 0; i < dataReceived.size(); i++)
 			{
 				header = static_cast<Header>(atoi(dataReceived[i].c_str()));
+				i++;
 				switch(header)
 				{
-				
+				case Header::MOVE:
+					direction = atoi(dataReceived[i].c_str());
+					i++;
+					switch()
+					{
+						
+					}
+					break;
+				case Header::SHOOT:
+
+					break;
+				default:
+					break;
 				}
 			}
 
