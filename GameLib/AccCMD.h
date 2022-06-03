@@ -7,9 +7,8 @@ class AccCMD
 public:
 	unsigned short senderPort;
 	unsigned int id;
-	void SetCommands(Command command);
+	std::vector<Command> accCommands;
 	std::string GetCommandData();
 
 private:
-	std::vector<Command> accCommands;
 };

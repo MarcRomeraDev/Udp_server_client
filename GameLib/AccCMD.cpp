@@ -1,17 +1,13 @@
 #include "AccCMD.h"
-
-void AccCMD::SetCommands(Command command)
-{
-	accCommands.push_back(command);
-}
+#include <string>
 
 std::string AccCMD::GetCommandData()
 {
-	std::string message = "";
+	std::string message = std::to_string((int)Header::COMMAND);	
 
 	for (const auto& command : accCommands)
 	{
-		message += command.data + "<";
+		message += "<" + command.data;
 	}
 
 	accCommands.clear();

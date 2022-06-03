@@ -18,6 +18,7 @@ private:
 	typedef std::chrono::system_clock::time_point clock;
 
 	void ReceiveMessages(bool*);
+	void SendAccCommands(bool*);
 	void Connect();
 
 public:
@@ -29,6 +30,7 @@ public:
 	PlayerInfo player;
 	PlayerInfo other;
 	AccCMD accCmd;
+	std::vector<AccCMD> commandsToValidate;
 
 	void SendCriticalMessage(Header header, std::string data);
 	void SendMessage(std::string);

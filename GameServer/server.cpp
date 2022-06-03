@@ -152,15 +152,18 @@ void DisconnectServer(bool* end, UdpSocket* socket, std::unordered_map<unsigned 
 	Disconnect(*socket, *clientesValidados, *clientesNoValidados);
 	delete socket;
 }
+
 bool ValidateMovement(int x, int y)
 {
 	return(x * SIZE > W_WINDOW_PX || x * SIZE < 0 || y * SIZE > H_WINDOW_PX || y * SIZE < 0);
 }
-void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* commandsToValidate) // Can only be Move or Shoot
+
+void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* commandsToValidate, std::unordered_map<unsigned short, PlayerInfo*>* clientesValidados) // Can only be Move or Shoot
 {
 	std::vector<std::string> dataReceived;
 	Header header;
 	int direction = 0;
+	std::string message;
 	while (!*end)
 	{
 		while (!commandsToValidate->empty())
@@ -172,34 +175,70 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 			std::string s(command.data);
 			dataReceived = Split(s, '<');
 
-			for(int i = 0; i < dataReceived.size(); i++)
+			for (int i = 0; i < dataReceived.size(); i++)
 			{
 				header = static_cast<Header>(atoi(dataReceived[i].c_str()));
 				i++;
-				switch(header)
+				switch (header)
 				{
 				case Header::MOVE:
 					direction = atoi(dataReceived[i].c_str());
 					i++;
-					switch(direction)
+					switch (direction)
 					{
-						
+					case 0: //up
+						clientesValidados->at(command.senderPort)->position.y--;
+						break;
+					case 1: //down
+						clientesValidados->at(command.senderPort)->position.y++;
+						break;
+					case 2: //left
+						clientesValidados->at(command.senderPort)->position.x--;
+						break;
+					case 3: // right
+						clientesValidados->at(command.senderPort)->position.x++;
+						break;
+					default:
+						break;
 					}
+
+					message = std::to_string((int)Header::OK_ACTION);
+					message += "<" + std::to_string(command.id);
+					bool val = ValidateMovement(clientesValidados->at(command.senderPort)->position.x, clientesValidados->at(command.senderPort)->position.y);
+					message += "<" + std::to_string(val);
+					if (!val)
+					{
+						switch (direction)
+						{
+						case 0: //up
+							clientesValidados->at(command.senderPort)->position.y++;
+							break;
+						case 1: //down
+							clientesValidados->at(command.senderPort)->position.y--;
+							break;
+						case 2: //left
+							clientesValidados->at(command.senderPort)->position.x++;
+							break;
+						case 3: // right
+							clientesValidados->at(command.senderPort)->position.x--;
+							break;
+						default:
+							break;
+						}
+						message += "<" + std::to_string(clientesValidados->at(command.senderPort)->position.x) + "<" + std::to_string(clientesValidados->at(command.senderPort)->position.y);
+					}
+					if (!socket->Send(message.c_str(), message.size() + 1, command.ipAddress, command.senderPort));
+					{
+						std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+					}
+
 					break;
 				case Header::SHOOT:
-
 					break;
 				default:
 					break;
 				}
 			}
-
-			/*if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
-			{
-				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
-			}
-			std::cout << "CLIENTE INACTIVO CON PUERTO: " << it->first << "DESCONECTADO" << std::endl;*/
-
 		}
 
 		// Dormir el thread

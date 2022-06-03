@@ -18,6 +18,9 @@ Client::Client()
 	std::thread tRecieve(&Client::ReceiveMessages, this, &end); //--> Thread to wait for incoming messages of other clients sent from server
 	tRecieve.detach();
 
+	std::thread tSendCommands(&Client::SendAccCommands, this, &end);
+	tSendCommands.detach();
+
 	Connect();
 }
 
@@ -36,6 +39,18 @@ void Client::Connect()
 
 	std::thread tSendCritical(&Client::SendCriticalMessage, this, Header::CONNECT, _message);
 	tSendCritical.detach();
+}
+
+void Client::SendAccCommands(bool *end) //Sends accumulated commands once every 50ms for the server to validate them
+{
+	while (!end)
+	{
+		if (!accCmd.accCommands.empty())
+		{
+			SendMessage(accCmd.GetCommandData());
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
 }
 
 void Client::SendCriticalMessage(Header header, std::string data)
@@ -122,6 +137,24 @@ void Client::ReceiveMessages(bool* end)
 			connected = false;
 			cleanDisconnect = true;
 			std::cout << "Desconectado por inactividad\nPULSE CUALQUIER TECLA Y ENTER PARA CERRAR";
+			break;
+		case Header::OK_ACTION:
+			for (int i = 0; i < commandsToValidate.size(); i++)
+			{
+				if (commandsToValidate[i].id == atoi(dataReceived[1].c_str()))
+				{
+					if(atoi(dataReceived[2].c_str()) % 2 == 0)
+					{
+						player.position.x = atoi(dataReceived[3].c_str()); player.position.y = atoi(dataReceived[4].c_str());
+
+					}
+					else
+					{
+						commandsToValidate.erase(commandsToValidate.begin() + i);
+					}
+					break;
+				}
+			}
 			break;
 		case Header::MESSAGE:
 			std::cout << dataReceived[1] << std::endl;
