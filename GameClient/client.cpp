@@ -43,11 +43,12 @@ void Client::Connect()
 
 void Client::SendAccCommands(bool *end) //Sends accumulated commands once every 50ms for the server to validate them
 {
-	while (!end)
+	while (!*end)
 	{
 		if (!accCmd.accCommands.empty())
 		{
 			SendMessage(accCmd.GetCommandData());
+			commandsToValidate.push_back(new AccCMD(accCmd));
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
@@ -150,7 +151,10 @@ void Client::ReceiveMessages(bool* end)
 					}
 					else
 					{
-						commandsToValidate.erase(commandsToValidate.begin() + i);
+					std::vector<AccCMD>::iterator it1, it2;
+					it1 = commandsToValidate.begin();
+					it2 = commandsToValidate.begin() + i;
+					commandsToValidate.erase(it1,it2);
 					}
 					break;
 				}

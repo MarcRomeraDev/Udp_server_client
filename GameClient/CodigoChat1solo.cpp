@@ -26,11 +26,13 @@ void Disconnect(Client& _client)
 
 void DrawDungeon(Client& _client)
 {
+	int counter = 0;
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");
 	sf::RectangleShape shape;
 	shape = sf::RectangleShape(sf::Vector2f(SIZE, SIZE));
 	shape.setOutlineColor(sf::Color::Black);
 	shape.setOutlineThickness(2.f);
+	std::string message;
 	if (_client.player.playerNum == 0)
 	{
 		_client.player.position.x = 0; _client.player.position.y = 0;
@@ -62,21 +64,38 @@ void DrawDungeon(Client& _client)
 				if (event.key.code == sf::Keyboard::Left)
 				{
 					_client.player.position.x--;
+					message =  std::to_string((int)Header::MOVE);
+					message += "<2";
+					_client.accCmd.accCommands.push_back(new Command(message, _client.port, counter, _client.sender));
+					counter++;
+
 					std::cout << "LEFT\n";
 				}
 				else if (event.key.code == sf::Keyboard::Up)
 				{
 					_client.player.position.y--;
+					message =  std::to_string((int)Header::MOVE);
+					message += "<0";
+					_client.accCmd.accCommands.push_back(new Command(message, _client.port, counter, _client.sender));
+					counter++;
 					std::cout << "UP\n";
 				}
 				else if (event.key.code == sf::Keyboard::Right)
 				{
 					_client.player.position.x++;
+					message =  std::to_string((int)Header::MOVE);
+					message += "<3";
+					_client.accCmd.accCommands.push_back(new Command(message, _client.port, counter, _client.sender));
+					counter++;
 					std::cout << "RIGTH\n";
 				}
 				else if (event.key.code == sf::Keyboard::Down)
 				{
 					_client.player.position.y++;
+					message =  std::to_string((int)Header::MOVE);
+					message += "<1";
+					_client.accCmd.accCommands.push_back(new Command(message, _client.port, counter, _client.sender));
+					counter++;
 					std::cout << "DOWN\n";
 				}
 				break;

@@ -10,9 +10,7 @@ class Client
 private:
 	UdpSocket* socket;
 	std::string recipient;
-	std::string sender;
 	bool end = false;
-	unsigned short port;
 	std::size_t received = 0;
 	char data[1024] = "";
 	typedef std::chrono::system_clock::time_point clock;
@@ -25,12 +23,14 @@ public:
 	Client();
 	~Client();
 	Header lastReceived;
+	std::string sender;
+	unsigned short port;
 	bool connected = false;
 	bool cleanDisconnect = false;
 	PlayerInfo player;
 	PlayerInfo other;
 	AccCMD accCmd;
-	std::vector<AccCMD> commandsToValidate;
+	std::vector<AccCMD*> commandsToValidate;
 
 	void SendCriticalMessage(Header header, std::string data);
 	void SendMessage(std::string);

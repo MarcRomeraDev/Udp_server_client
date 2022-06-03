@@ -174,6 +174,7 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 			dataReceived.clear();
 			std::string s(command.data);
 			dataReceived = Split(s, '<');
+			bool val = false;
 
 			for (int i = 0; i < dataReceived.size(); i++)
 			{
@@ -204,7 +205,7 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 
 					message = std::to_string((int)Header::OK_ACTION);
 					message += "<" + std::to_string(command.id);
-					bool val = ValidateMovement(clientesValidados->at(command.senderPort)->position.x, clientesValidados->at(command.senderPort)->position.y);
+					val = ValidateMovement(clientesValidados->at(command.senderPort)->position.x, clientesValidados->at(command.senderPort)->position.y);
 					message += "<" + std::to_string(val);
 					if (!val)
 					{
@@ -250,7 +251,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 {
 	std::string message = "";
 	std::string sender;
-	std::queue<Command> commandsToValidate;
+	std::queue<Command*> commandsToValidate;
 	const int MAX_ATTEMPS_PER_CLIENT = 3;
 	unsigned short port;
 	char data[1024] = "";
@@ -266,7 +267,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 	std::thread tDisconnections(ManageDisconnections, &socket, &end, &clientsNoValidados, &clientsValidados, &games, &mtx);
 	tDisconnections.detach();
 
-	std::thread tValidateCommands(ValidateCommands, &socket, &end, &commandsToValidate);
+	std::thread tValidateCommands(ValidateCommands, &socket, &end, &commandsToValidate, &clientsValidados);
 	tValidateCommands.detach();
 
 	while (!end)
@@ -311,6 +312,12 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 				{
 					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 				}
+				break;
+			case Header::COMMAND:
+				//clientsValidados.at(port)->clientSalt = static_cast<uint32_t>(std::stoul(dataReceived[1].c_str()));
+				//message = std::to_string((int)Header::ACK_CHALLENGE); //CONNECTION APPROVED NOTIFICATION TO THE CLIENT
+				commandsToValidate.push(new Command())
+				break;
 			default:
 
 				break;
