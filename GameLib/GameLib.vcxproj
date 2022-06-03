@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="AccCMD.h" />
     <ClInclude Include="Command.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="PlayerInfo.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="UdpSocket.h" />

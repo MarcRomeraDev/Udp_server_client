@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include <Command.h>
+#include <Constants.h>
 #include <queue>
 
 #define TIME_FOR_VALIDATED_DISCONECTION 30000
@@ -14,17 +15,6 @@
 #define DISCONECTION_REFRESH_TIME 5
 #define CONFIRMATION_REFRESH_TIME 50
 
-#define SIZE 10.f
-
-///TAMAÑO EN PX DE LA VENTANA
-#define W_WINDOW_PX 800
-#define H_WINDOW_PX 600
-///TAMAÑ˜O EN CELDAS DE LA VENTANA
-#define W_WINDOW_TITLE 80
-#define H_WINDOW_TITLE 60
-///TAMAÑO EN CELDAS DE UNA ZONA DE MAPA
-#define W_WINDOW_TITLE_PART 40
-#define H_WINDOW_TITLE_PART 30
 struct Game
 {
 	std::vector<PlayerInfo> players;
@@ -173,7 +163,7 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 	int direction = 0;
 	while (!*end)
 	{
-		while(!commandsToValidate->empty())
+		while (!commandsToValidate->empty())
 		{
 			Command command = commandsToValidate->front();
 			commandsToValidate->pop();
@@ -191,7 +181,7 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 				case Header::MOVE:
 					direction = atoi(dataReceived[i].c_str());
 					i++;
-					switch()
+					switch(direction)
 					{
 						
 					}
@@ -204,12 +194,12 @@ void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* command
 				}
 			}
 
-			if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
+			/*if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
 			{
 				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 			}
-			std::cout << "CLIENTE INACTIVO CON PUERTO: " << it->first << "DESCONECTADO" << std::endl;
-		
+			std::cout << "CLIENTE INACTIVO CON PUERTO: " << it->first << "DESCONECTADO" << std::endl;*/
+
 		}
 
 		// Dormir el thread
@@ -344,6 +334,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 									match->players.push_back(*it->second);
 									gameAvailable = true;
 									message += "<1"; // le dice al cliente que el es el player 2
+									clientsValidados.at(port)->position.x = W_WINDOW_TITLE - 1; clientsValidados.at(port)->position.y = H_WINDOW_TITLE - 1;
 									break;
 								}
 							}
@@ -353,6 +344,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 								std::unordered_map<unsigned short, PlayerInfo*>::iterator it = clientsValidados.find(port);
 								game->players.push_back(*it->second);
 								games.push_back(game);
+								clientsValidados.at(port)->position.x = 0; clientsValidados.at(port)->position.y = 0;
 								message += "<0"; // le dice al cliente que el es el player 1
 							}
 						}

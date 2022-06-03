@@ -5,20 +5,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include "Client.h"
-
-#define SIZE 10.f
-
-///TAMAÑO EN PX DE LA VENTANA
-#define W_WINDOW_PX 800
-#define H_WINDOW_PX 600
-
-///TAMAÑ˜O EN CELDAS DE LA VENTANA
-#define W_WINDOW_TITLE 80
-#define H_WINDOW_TITLE 60
-
-///TAMAÑO EN CELDAS DE UNA ZONA DE MAPA
-#define W_WINDOW_TITLE_PART 40
-#define H_WINDOW_TITLE_PART 30
+#include <Constants.h>
 
 ///NUMERO DE ENEMIGOS Y DE OBSTACULOS QUE TIENEN QUE GENERARSE POR ZONA
 #define NUM_TARGETS 5
@@ -100,7 +87,6 @@ void DrawDungeon(Client& _client)
 		{
 			for (int j = 0; j < H_WINDOW_TITLE; j++)
 			{
-
 				shape.setFillColor(sf::Color(90, 90, 90, 255));
 
 
