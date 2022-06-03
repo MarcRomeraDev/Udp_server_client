@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 enum class Header {
 	CONNECT = 0, // Client -> Server (Cuando el cliente se conecta por primera vez)

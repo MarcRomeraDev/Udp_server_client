@@ -6,7 +6,13 @@
 #include <PlayerInfo.h>
 #include <thread>
 #include <mutex>
+#include <Command.h>
+#include <queue>
 
+#define TIME_FOR_VALIDATED_DISCONECTION 30000
+#define TIME_FOR_NOT_VALIDATED_DISCONECTION 30000
+#define DISCONECTION_REFRESH_TIME 5
+#define CONFIRMATION_REFRESH_TIME 50
 
 struct Game
 {
@@ -93,7 +99,7 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 		for (auto it = clientesValidados->begin(); it != clientesValidados->end();)
 		{
 			duration = start - it->second->timeStamp;
-			if (duration.count() > 5000)
+			if (duration.count() > TIME_FOR_VALIDATED_DISCONECTION)
 			{
 				if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
 				{
@@ -114,7 +120,7 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 		for (auto it = clientesNoValidados->begin(); it != clientesNoValidados->end();)
 		{
 			duration = start - it->second->timeStamp;
-			if (duration.count() > 30000)
+			if (duration.count() > TIME_FOR_NOT_VALIDATED_DISCONECTION)
 			{
 				if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
 				{
@@ -133,7 +139,7 @@ void ManageDisconnections(UdpSocket* socket, bool* end, std::unordered_map<unsig
 		}
 
 		// Dormir el thread
-		std::this_thread::sleep_for(std::chrono::seconds(5));
+		std::this_thread::sleep_for(std::chrono::seconds(DISCONECTION_REFRESH_TIME));
 	}
 }
 
@@ -146,10 +152,48 @@ void DisconnectServer(bool* end, UdpSocket* socket, std::unordered_map<unsigned 
 	delete socket;
 }
 
+void ValidateCommands(UdpSocket* socket, bool* end, std::queue<Command>* commandsToValidate) // Can only be Move or Shoot
+{
+	std::vector<std::string> dataReceived;
+	Header header;
+	while (!*end)
+	{
+		while(!commandsToValidate->empty())
+		{
+			Command command = commandsToValidate->front();
+			commandsToValidate->pop();
+
+			dataReceived.clear();
+			std::string s(command.data);
+			dataReceived = Split(s, '<');
+
+			for(int i = 0; i < dataReceived.size(); i++)
+			{
+				header = static_cast<Header>(atoi(dataReceived[i].c_str()));
+				switch(header)
+				{
+				
+				}
+			}
+
+			if (!socket->Send(message.c_str(), message.size() + 1, it->second->ip, it->second->port))
+			{
+				std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
+			}
+			std::cout << "CLIENTE INACTIVO CON PUERTO: " << it->first << "DESCONECTADO" << std::endl;
+		
+		}
+
+		// Dormir el thread
+		std::this_thread::sleep_for(std::chrono::seconds(CONFIRMATION_REFRESH_TIME));
+	}
+}
+
 void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned short, PlayerInfo*> clientsNoValidados, std::unordered_map<unsigned short, PlayerInfo*> clientsValidados, std::vector<Game*> games)
 {
 	std::string message = "";
 	std::string sender;
+	std::queue<Command> commandsToValidate;
 	const int MAX_ATTEMPS_PER_CLIENT = 3;
 	unsigned short port;
 	char data[1024] = "";
@@ -164,6 +208,9 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 
 	std::thread tDisconnections(ManageDisconnections, &socket, &end, &clientsNoValidados, &clientsValidados, &games, &mtx);
 	tDisconnections.detach();
+
+	std::thread tValidateCommands(ValidateCommands, &socket, &end, &commandsToValidate);
+	tValidateCommands.detach();
 
 	while (!end)
 	{
@@ -208,6 +255,7 @@ void ManageConnections(UdpSocket& socket, bool end, std::unordered_map<unsigned 
 					std::cout << "ERROR AL ENVIAR PACKET" << std::endl;
 				}
 			default:
+
 				break;
 			}
 			// 

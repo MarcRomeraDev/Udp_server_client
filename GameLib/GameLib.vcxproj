@@ -143,12 +143,14 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AccCMD.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="PlayerInfo.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="UdpSocket.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AccCMD.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="PlayerInfo.cpp" />
     <ClCompile Include="UdpSocket.cpp" />
