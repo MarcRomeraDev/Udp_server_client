@@ -142,7 +142,7 @@ void Client::ReceiveMessages(bool* end)
 		case Header::OK_ACTION:
 			for (int i = 0; i < commandsToValidate.size(); i++)
 			{
-				if (commandsToValidate[i].id == atoi(dataReceived[1].c_str()))
+				if (commandsToValidate[i]->id == atoi(dataReceived[1].c_str()))
 				{
 					if(atoi(dataReceived[2].c_str()) % 2 == 0)
 					{
@@ -151,7 +151,7 @@ void Client::ReceiveMessages(bool* end)
 					}
 					else
 					{
-					std::vector<AccCMD>::iterator it1, it2;
+					std::vector<AccCMD*>::iterator it1, it2;
 					it1 = commandsToValidate.begin();
 					it2 = commandsToValidate.begin() + i;
 					commandsToValidate.erase(it1,it2);
